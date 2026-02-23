@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/useTheme';
 import { useState } from 'react';
 
 export default function Navbar() {
