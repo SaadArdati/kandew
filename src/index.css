@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #2d6a4f;
+  --color-primary-light: #40916c;
+  --color-primary-dark: #1b4332;
+  --color-accent: #95d5b2;
+  --color-surface: #ffffff;
+  --color-surface-dark: #1a1a2e;
+  --color-text: #1a1a2e;
+  --color-text-dark: #e0e0e0;
+}
