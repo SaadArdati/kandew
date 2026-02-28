@@ -2,13 +2,60 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Static tokens (same in both modes) ──────────────────── */
 @theme {
-  --color-primary: #2d6a4f;
-  --color-primary-light: #40916c;
-  --color-primary-dark: #1b4332;
-  --color-accent: #95d5b2;
-  --color-surface: #ffffff;
-  --color-surface-dark: #1a1a2e;
-  --color-text: #1a1a2e;
-  --color-text-dark: #e0e0e0;
+    --color-primary: #1a7a50;           /* Forest Emerald      */
+    --color-primary-container: #2d9466; /* Canopy Green         */
+    --color-on-primary-container: #0e3a22; /* Deep Bark         */
+    --color-secondary: #d46882;         /* Rose Petal           */
+    --color-tertiary: #c89038;          /* Amber Sunlight       */
+    --color-petal: #f0a8bc;             /* Cherry Blossom       */
+    --color-leaf: #4ec48c;              /* Spring Leaf          */
 }
+
+/* ── Light mode tokens ───────────────────────────────────── */
+:root {
+    --color-surface: #f7f5f0;
+    --color-surface-container: #ece8e0;
+    --color-surface-container-high: #e0ebe4;
+    --color-on-surface: #1a2820;
+    --color-on-surface-variant: #506458;
+    --color-outline: #b8c8bc;
+}
+
+/* ── Dark mode tokens (same names, different values) ─────── */
+:root:where(.dark) {
+    --color-surface: #0a120e;
+    --color-surface-container: #121e16;
+    --color-surface-container-high: #1a2c22;
+    --color-on-surface: #cce0cc;
+    --color-on-surface-variant: #7ea890;
+    --color-outline: #283c30;
+}
+
+body {
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Smooth scrollbar tinting */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-surface-container);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary-container);
+    border-radius: 4px;
+}
+
+
+:where(.dark) ::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+}
+

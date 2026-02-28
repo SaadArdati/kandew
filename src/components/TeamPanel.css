@@ -1,0 +1,39 @@
+.team-panel {
+    width: 72px;
+    min-width: 72px;
+    background: var(--color-surface-container);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    gap: 8px;
+    border-right: 1px solid var(--color-surface-container-high);
+}
+
+.team-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+
+.team-icon-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-radius 0.15s ease, border-color 0.15s ease;
+    background: var(--color-surface-container-high);
+    border: 3px solid transparent;
+}
+
+.team-icon-btn:hover {
+    border-radius: 16px;
+    border-color: var(--color-primary);
+}
+
+.team-icon-btn.active {
+    border-radius: 16px;
+    border-color: var(--color-leaf);
+}
