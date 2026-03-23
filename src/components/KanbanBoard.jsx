@@ -12,43 +12,88 @@ export default function KanbanBoard({
     onDragLeave,
     onDrop,
     onDragEnd,
+    onCardClick,
+    canManageTeam = false,
+    onManageTeam,
+    canCreateTasks = false,
+    onOpenCreateTask,
+    currentTime,
 }) {
     return (
         <div className="kanban-board-wrapper">
-            <h1 className="board-title">{teamName}</h1>
+            <div className="board-header">
+                <h1 className="board-title">{teamName}</h1>
+
+                {canManageTeam && (
+                    <button
+                        type="button"
+                        className="board-manage-btn"
+                        onClick={onManageTeam}
+                    >
+                        Manage Team
+                    </button>
+                )}
+            </div>
+
             <div className="kanban-board" onDragEnd={onDragEnd}>
-                {tasksByColumn.map(col => {
-                    const isOver = dragOverCol === col.id;
+                {tasksByColumn.map((column, columnIndex) => {
+                    const isOver = dragOverCol === column.id;
+                    const showCreateButton = canCreateTasks && columnIndex === 0;
 
                     return (
                         <div
-                            key={col.id}
+                            key={`${column.teamId}-${column.id}`}
                             className={`kanban-column ${isOver ? 'drag-over' : ''}`}
-                            onDragOver={(e) => onColumnDragOver(e, col.id)}
+                            onDragOver={(event) => onColumnDragOver(event, column.id)}
                             onDragLeave={onDragLeave}
-                            onDrop={(e) => onDrop(e, col.id)}
+                            onDrop={(event) => onDrop(event, column.id)}
                         >
                             <h2 className="column-header">
-                                {col.title}
-                                <span className="column-count">{col.tasks.length}</span>
+                                {column.title}
+                                <span className="column-count">{column.tasks.length}</span>
                             </h2>
+
                             <div className="column-body">
-                                {col.tasks.map((task, i) => (
+                                {column.tasks.map((task, index) => (
                                     <div key={task.id}>
-                                        {isOver && dropIndex === i && (
-                                            <div className="drop-indicator"/>
+                                        {isOver && dropIndex === index && (
+                                            <div className="drop-indicator" />
                                         )}
+
                                         <KanbanCard
                                             task={task}
                                             onDragStart={onDragStart}
                                             isDragging={task.id === draggedTaskId}
+                                            onClick={() =>
+                                                onCardClick({
+                                                    ...task,
+                                                    columnTitle: column.title,
+                                                    teamName,
+                                                })
+                                            }
+                                            currentTime={currentTime}
                                         />
                                     </div>
                                 ))}
-                                {isOver && dropIndex === col.tasks.length && (
-                                    <div className="drop-indicator"/>
+
+                                {isOver && dropIndex === column.tasks.length && (
+                                    <div className="drop-indicator" />
                                 )}
                             </div>
+
+                            {showCreateButton && (
+                                <div className="column-create-task-row">
+                                    <button
+                                        type="button"
+                                        className="create-task-fab"
+                                        onClick={onOpenCreateTask}
+                                        aria-label="Add task"
+                                        title="Add task"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     );
                 })}

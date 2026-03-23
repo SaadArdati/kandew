@@ -1,0 +1,125 @@
+.create-task-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    padding: 1rem;
+}
+
+.create-task-dialog {
+    position: relative;
+    width: min(100%, 560px);
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-outline);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    padding: 1.25rem 1.25rem 1rem;
+}
+
+.create-task-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.85rem;
+    border: none;
+    background: transparent;
+    color: var(--color-on-surface-variant);
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.create-task-header {
+    margin-bottom: 1rem;
+    padding-right: 2rem;
+}
+
+.create-task-header h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.create-task-header p {
+    margin: 0;
+    color: var(--color-on-surface-variant);
+    font-size: 0.9rem;
+}
+
+.create-task-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+}
+
+.create-task-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.create-task-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.create-task-field label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-on-surface);
+}
+
+.create-task-field input,
+.create-task-field textarea,
+.create-task-field select {
+    width: 100%;
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-outline);
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+    font: inherit;
+}
+
+.create-task-field textarea {
+    resize: vertical;
+    min-height: 96px;
+}
+
+.create-task-error {
+    color: var(--color-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.create-task-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+}
+
+.create-task-submit {
+    border: none;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.78rem 1.2rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.create-task-submit:hover {
+    transform: translateY(-1px);
+    opacity: 0.96;
+}
+
+@media (max-width: 640px) {
+    .create-task-grid {
+        grid-template-columns: 1fr;
+    }
+}

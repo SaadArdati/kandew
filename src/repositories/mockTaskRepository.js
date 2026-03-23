@@ -1,15 +1,16 @@
 import { teams, columns, initialTasks, initialMembers } from '../data/mockData';
+import { getEarnedPetals, normalizeTask } from '../utils/petalUtils';
 
 let allTeams = [...teams];
 let allMembers = [...initialMembers];
-let tasks = [...initialTasks];
+let tasks = initialTasks.map(normalizeTask);
 
 export function getTeams() {
     return allTeams;
 }
 
 export function getTeamById(teamId) {
-    return allTeams.find(t => t.id === teamId);
+    return allTeams.find((team) => team.id === teamId);
 }
 
 export function createTeam(name, icon) {
@@ -18,76 +19,96 @@ export function createTeam(name, icon) {
         name,
         icon: icon || `https://picsum.photos/seed/${Date.now()}/80/80`,
     };
+
     allTeams = [...allTeams, newTeam];
     return newTeam;
 }
 
 export function renameTeamById(teamId, newName) {
-    allTeams = allTeams.map(t => t.id === teamId ? { ...t, name: newName } : t);
-    return allTeams.find(t => t.id === teamId);
+    allTeams = allTeams.map((team) =>
+        team.id === teamId ? { ...team, name: newName } : team
+    );
+
+    return allTeams.find((team) => team.id === teamId);
 }
 
 export function updateTeamIcon(teamId, iconUrl) {
-    allTeams = allTeams.map(t => t.id === teamId ? { ...t, icon: iconUrl } : t);
-    return allTeams.find(t => t.id === teamId);
+    allTeams = allTeams.map((team) =>
+        team.id === teamId ? { ...team, icon: iconUrl } : team
+    );
+
+    return allTeams.find((team) => team.id === teamId);
 }
 
 export function deleteTeamById(teamId) {
-    allTeams = allTeams.filter(t => t.id !== teamId);
-    allMembers = allMembers.filter(m => m.teamId !== teamId);
-    tasks = tasks.filter(t => t.teamId !== teamId);
+    allTeams = allTeams.filter((team) => team.id !== teamId);
+    allMembers = allMembers.filter((member) => member.teamId !== teamId);
+    tasks = tasks.filter((task) => task.teamId !== teamId);
 }
 
 export function getMembersByTeam(teamId) {
-    return allMembers.filter(m => m.teamId === teamId);
+    return allMembers.filter((member) => member.teamId === teamId);
 }
 
 export function inviteMemberToTeam(teamId, email) {
-    const name = email.split('@')[0];
+    const baseName = email.split('@')[0];
+    const userId = `user-${Date.now()}`;
+
     const newMember = {
         id: `m-${Date.now()}`,
+        userId,
         teamId,
-        name: name.charAt(0).toUpperCase() + name.slice(1),
+        name: baseName.charAt(0).toUpperCase() + baseName.slice(1),
         email,
         role: 'member',
-        avatar: `https://picsum.photos/seed/${name}/80/80`,
+        avatar: `https://picsum.photos/seed/${baseName}/80/80`,
     };
+
     allMembers = [...allMembers, newMember];
-    return allMembers.filter(m => m.teamId === teamId);
+    return allMembers.filter((member) => member.teamId === teamId);
 }
 
 export function kickMemberFromTeam(teamId, memberId) {
-    allMembers = allMembers.filter(m => !(m.teamId === teamId && m.id === memberId));
-    return allMembers.filter(m => m.teamId === teamId);
+    allMembers = allMembers.filter(
+        (member) => !(member.teamId === teamId && member.id === memberId)
+    );
+
+    return allMembers.filter((member) => member.teamId === teamId);
 }
 
 export function getStatsByTeam(teamId) {
-    const memberCount = allMembers.filter(m => m.teamId === teamId).length;
-    const teamTasks = tasks.filter(t => t.teamId === teamId);
-    const activeTasks = teamTasks.filter(t => t.columnId !== 'done').length;
-    const doneTasks = teamTasks.filter(t => t.columnId === 'done').length;
-    const petals = doneTasks * 5;
-    return { memberCount, activeTasks, petals };
+    const memberCount = allMembers.filter((member) => member.teamId === teamId).length;
+    const teamTasks = tasks.filter((task) => task.teamId === teamId);
+    const activeTasks = teamTasks.filter((task) => task.columnId !== 'done').length;
+    const doneTasks = teamTasks.filter((task) => task.columnId === 'done').length;
+    const petals = teamTasks.reduce((sum, task) => sum + getEarnedPetals(task), 0);
+
+    return { memberCount, activeTasks, doneTasks, petals };
 }
 
 export function getColumnsByTeam(teamId) {
-    return columns.filter(c => c.teamId === teamId);
+    return columns.filter((column) => column.teamId === teamId);
 }
 
 export function getTasksByTeam(teamId) {
-    return tasks.filter(t => t.teamId === teamId);
+    return tasks.filter((task) => task.teamId === teamId).map(normalizeTask);
 }
 
 export function saveTaskMove(teamId, tasksInNewOrder) {
-    tasks = [...tasks.filter(t => t.teamId !== teamId), ...tasksInNewOrder];
+    tasks = [
+        ...tasks.filter((task) => task.teamId !== teamId),
+        ...tasksInNewOrder.map(normalizeTask),
+    ];
+
     return tasksInNewOrder;
 }
 
 export function addTask(task) {
-    tasks = [...tasks, task];
-    return task;
+    const normalizedTask = normalizeTask(task);
+    tasks = [...tasks, normalizedTask];
+    return normalizedTask;
 }
 
 export function deleteTask(taskId) {
-    tasks = tasks.filter(t => t.id !== taskId);
+    tasks = tasks.filter((task) => task.id !== taskId);
 }

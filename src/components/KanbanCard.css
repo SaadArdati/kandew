@@ -29,6 +29,7 @@
     width: fit-content;
 }
 
+
 .priority-high {
     background: color-mix(in srgb, var(--color-secondary) 20%, transparent);
     color: var(--color-secondary);
@@ -71,4 +72,17 @@
 .card-assignee {
     font-size: 0.7rem;
     color: var(--color-on-surface-variant);
+}
+
+.card-due-date {
+    color: var(--color-on-surface-variant);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.card-due-date.due-soon {
+    color: #d97706;
+    font-weight: 700;
 }

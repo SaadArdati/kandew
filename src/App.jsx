@@ -1,31 +1,176 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
+
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import TeamManagement from './pages/TeamManagement';
-import TeamCreation from './pages/TeamCreation';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
 import SetupProfile from './pages/SetupProfile';
- 
+import ForgotPassword from './pages/ForgotPassword';
+import AccountSettings from './pages/AccountSettings';
+import TeamManagement from './pages/TeamManagement';
+import TeamCreation from './pages/TeamCreation';
+
+function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
+    if (isAuthenticated) {
+        return <Navigate to={needsProfileSetup ? '/setup-profile' : '/'} replace />;
+    }
+
+    return children;
+}
+
+function ProtectedRoute({ isAuthenticated, needsProfileSetup, children }) {
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (needsProfileSetup) {
+        return <Navigate to="/setup-profile" replace />;
+    }
+
+    return children;
+}
+
+function SetupProfileRoute({ isAuthenticated, needsProfileSetup, children }) {
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (!needsProfileSetup) {
+        return <Navigate to="/" replace />;
+    }
+
+    return children;
+}
+
 export default function App() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+    const [registeredUser, setRegisteredUser] = useState(null);
+
+    function handleLogin({ email, password }) {
+        if (!email.trim() || !password.trim()) {
+            return {
+                ok: false,
+                message: 'Email and password are required.',
+            };
+        }
+
+        setIsAuthenticated(true);
+        setNeedsProfileSetup(false);
+
+        return { ok: true };
+    }
+
+    function handleRegister({ username, email, password }) {
+        if (!username.trim() || !email.trim() || !password.trim()) {
+            return {
+                ok: false,
+                message: 'Please complete all fields.',
+            };
+        }
+
+        setRegisteredUser({
+            username: username.trim(),
+            email: email.trim(),
+        });
+
+        setIsAuthenticated(true);
+        setNeedsProfileSetup(true);
+
+        return { ok: true };
+    }
+
+    function handleCompleteProfile(profileData) {
+        setRegisteredUser((prev) => ({
+            ...prev,
+            ...profileData,
+        }));
+
+        setNeedsProfileSetup(false);
+    }
+
+    function handleLogout() {
+        setIsAuthenticated(false);
+        setNeedsProfileSetup(false);
+    }
+
     return (
         <ThemeProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route element={<Layout />}>
+                    <Route
+                        path="/login"
+                        element={
+                            <PublicRoute
+                                isAuthenticated={isAuthenticated}
+                                needsProfileSetup={needsProfileSetup}
+                            >
+                                <Login onLogin={handleLogin} />
+                            </PublicRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute
+                                isAuthenticated={isAuthenticated}
+                                needsProfileSetup={needsProfileSetup}
+                            >
+                                <Register onRegister={handleRegister} />
+                            </PublicRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/forgot-password"
+                        element={
+                            <PublicRoute
+                                isAuthenticated={isAuthenticated}
+                                needsProfileSetup={needsProfileSetup}
+                            >
+                                <ForgotPassword />
+                            </PublicRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/setup-profile"
+                        element={
+                            <SetupProfileRoute
+                                isAuthenticated={isAuthenticated}
+                                needsProfileSetup={needsProfileSetup}
+                            >
+                                <SetupProfile
+                                    registeredUser={registeredUser}
+                                    onCompleteProfile={handleCompleteProfile}
+                                />
+                            </SetupProfileRoute>
+                        }
+                    />
+
+                    <Route
+                        element={
+                            <ProtectedRoute
+                                isAuthenticated={isAuthenticated}
+                                needsProfileSetup={needsProfileSetup}
+                            >
+                                <Layout onLogout={handleLogout} />
+                            </ProtectedRoute>
+                        }
+                    >
                         <Route index element={<Home />} />
+                        <Route path="account" element={<AccountSettings />} />
+                        <Route path="account-settings" element={<AccountSettings />} />
                         <Route path="team/new" element={<TeamCreation />} />
                         <Route path="team/:teamId/manage" element={<TeamManagement />} />
-                        <Route path="login" element={<Login />} />
-                        <Route path="register" element={<Register />} />
-                        <Route path="forgot-password" element={<ForgotPassword />} />
-                        <Route path="setup-profile" element={<SetupProfile />} />
                     </Route>
+
+                    <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>
     );
 }
- 
