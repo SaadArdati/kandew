@@ -10,9 +10,9 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 | Name         | Pages                                           |
 |--------------|-------------------------------------------------|
 | Saad Ardati  | Home (Kanban Board), Tasks (List View)          |
-| Lynn Nassour | Team Creation, Team Management                  |
+| Lynn Nassar  | Team Creation, Team Management                  |
 | Nour Mardini | Account Settings, Task Details, Task Creation   |
-| Lynn Hamdan  | Login, Register, Forgot Password, Setup Profile |
+| Lynn Hamieh  | Login, Register, Forgot Password, Setup Profile |
 
 ## Contributions
 
