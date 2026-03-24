@@ -10,7 +10,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 | Name         | Pages                                           |
 |--------------|-------------------------------------------------|
 | Saad Ardati  | Home (Kanban Board), Tasks (List View)          |
-| Lynn Nassar  | Team Creation, Team Management                  |
+| Leen Nassar  | Team Creation, Team Management                  |
 | Nour Mardini | Account Settings, Task Details, Task Creation   |
 | Lynn Hamieh  | Login, Register, Forgot Password, Setup Profile |
 
@@ -27,7 +27,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 - Made the app responsive for mobile and tablet
 - Designed the color scheme and CSS custom properties
 
-### Lynn Nassour
+### Leen Nassar
 
 - Built the Team Creation page with team name, icon selection, and custom icon URL
 - Built the Team Management page with members tab, settings tab, and danger zone
@@ -50,7 +50,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 - Wired the auth flow (login, register, setup profile) with route guards
 - Added role-based visibility so only team creators can add tasks
 
-### Lynn Hamdan
+### Lynn Hamieh
 
 - Built the Login page with email and password validation
 - Built the Register page with username, email, password, and confirm password validation
