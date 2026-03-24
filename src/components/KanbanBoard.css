@@ -38,6 +38,87 @@
     opacity: 0.96;
 }
 
+/* Filter bar — search, member bubbles, priority dropdown */
+.board-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    flex-wrap: wrap;
+}
+
+.board-search {
+    flex: 1;
+    min-width: 160px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    font-size: 0.8rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.board-search::placeholder {
+    color: var(--color-on-surface-variant);
+}
+
+.board-search:focus {
+    border-color: var(--color-primary);
+}
+
+.board-member-bubbles {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.board-member-bubble {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    background: var(--color-surface-container-high);
+    transition: border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+    opacity: 0.5;
+}
+
+.board-member-bubble img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.board-member-bubble:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.board-member-bubble.selected {
+    border-color: var(--color-primary);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.board-priority-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.board-priority-select:focus {
+    border-color: var(--color-primary);
+}
+
 .kanban-board {
     display: flex;
     flex: 1;
@@ -109,8 +190,8 @@
 }
 
 .create-task-fab {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border: none;
     border-radius: 9999px;
     background: var(--color-primary);
@@ -128,13 +209,38 @@
     opacity: 0.96;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
     .board-header {
         flex-direction: column;
         align-items: flex-start;
+        padding: 0.75rem 1rem 0;
     }
 
     .board-manage-btn {
         width: 100%;
+    }
+
+    .kanban-board {
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .kanban-column {
+        min-width: 80vw;
+        flex: none;
+        scroll-snap-align: start;
+    }
+
+    .board-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .board-search {
+        min-width: unset;
+    }
+
+    .board-member-bubbles {
+        overflow-x: auto;
     }
 }

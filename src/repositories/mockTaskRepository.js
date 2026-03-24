@@ -1,6 +1,12 @@
+/**
+ * Mock task repository — in-memory data store that simulates backend CRUD.
+ * Data resets on page refresh. Will be swapped for a live API in Phase 2
+ * by changing the re-export in taskRepository.js.
+ */
 import { teams, columns, initialTasks, initialMembers } from '../data/mockData';
 import { getEarnedPetals, normalizeTask } from '../utils/petalUtils';
 
+// Module-level state — persists across renders but resets on refresh
 let allTeams = [...teams];
 let allMembers = [...initialMembers];
 let tasks = initialTasks.map(normalizeTask);
@@ -13,11 +19,12 @@ export function getTeamById(teamId) {
     return allTeams.find((team) => team.id === teamId);
 }
 
-export function createTeam(name, icon) {
+export function createTeam(name, icon, creatorUserId) {
     const newTeam = {
         id: `team-${Date.now()}`,
         name,
         icon: icon || `https://picsum.photos/seed/${Date.now()}/80/80`,
+        creatorUserId: creatorUserId || null,
     };
 
     allTeams = [...allTeams, newTeam];

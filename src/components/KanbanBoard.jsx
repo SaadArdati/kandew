@@ -18,6 +18,13 @@ export default function KanbanBoard({
     canCreateTasks = false,
     onOpenCreateTask,
     currentTime,
+    searchQuery = '',
+    onSearchChange,
+    members = [],
+    selectedMembers = [],
+    onToggleMember,
+    priorityFilter = 'all',
+    onPriorityChange,
 }) {
     return (
         <div className="kanban-board-wrapper">
@@ -34,6 +41,54 @@ export default function KanbanBoard({
                     </button>
                 )}
             </div>
+
+            {/* Search, member avatars, and priority filter */}
+            {onSearchChange && (
+                <div className="board-filter-bar">
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className="board-search"
+                        aria-label="Search tasks"
+                    />
+
+                    {members.length > 0 && (
+                        <div className="board-member-bubbles" role="group" aria-label="Filter by member">
+                            {members.map((member) => {
+                                const isSelected = selectedMembers.includes(member.userId);
+                                return (
+                                    <button
+                                        key={member.userId}
+                                        type="button"
+                                        className={`board-member-bubble ${isSelected ? 'selected' : ''}`}
+                                        onClick={() => onToggleMember(member.userId)}
+                                        title={member.name}
+                                        aria-pressed={isSelected}
+                                    >
+                                        <img src={member.avatar} alt={member.name} />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {onPriorityChange && (
+                        <select
+                            value={priorityFilter}
+                            onChange={(e) => onPriorityChange(e.target.value)}
+                            className="board-priority-select"
+                            aria-label="Filter by priority"
+                        >
+                            <option value="all">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    )}
+                </div>
+            )}
 
             <div className="kanban-board" onDragEnd={onDragEnd}>
                 {tasksByColumn.map((column, columnIndex) => {

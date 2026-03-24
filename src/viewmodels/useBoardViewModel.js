@@ -1,3 +1,7 @@
+/**
+ * ViewModel for the kanban board — manages task state, drag-and-drop,
+ * and task creation for the currently selected team.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import {
     addTask,
@@ -17,7 +21,7 @@ export default function useBoardViewModel(activeTeamId) {
         setTasks(getTasksByTeam(activeTeamId));
     }, [activeTeamId]);
 
-    const columns = getColumnsByTeam(activeTeamId);
+    const columns = useMemo(() => getColumnsByTeam(activeTeamId), [activeTeamId]);
     const firstColumnId = columns[0]?.id ?? 'todo';
 
     const tasksByColumn = useMemo(() => {

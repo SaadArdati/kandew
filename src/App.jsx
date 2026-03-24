@@ -11,6 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import AccountSettings from './pages/AccountSettings';
 import TeamManagement from './pages/TeamManagement';
 import TeamCreation from './pages/TeamCreation';
+import Tasks from './pages/Tasks';
 
 function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (isAuthenticated) {
@@ -51,10 +52,13 @@ export default function App() {
 
     function handleLogin({ email, password }) {
         if (!email.trim() || !password.trim()) {
-            return {
-                ok: false,
-                message: 'Email and password are required.',
-            };
+            return { ok: false, message: 'Email and password are required.' };
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            return { ok: false, message: 'Enter a valid email address.' };
+        }
+        if (password.length < 6) {
+            return { ok: false, message: 'Password must be at least 6 characters.' };
         }
 
         setIsAuthenticated(true);
@@ -65,10 +69,16 @@ export default function App() {
 
     function handleRegister({ username, email, password }) {
         if (!username.trim() || !email.trim() || !password.trim()) {
-            return {
-                ok: false,
-                message: 'Please complete all fields.',
-            };
+            return { ok: false, message: 'Please complete all fields.' };
+        }
+        if (username.trim().length < 3) {
+            return { ok: false, message: 'Username must be at least 3 characters.' };
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            return { ok: false, message: 'Enter a valid email address.' };
+        }
+        if (password.length < 6) {
+            return { ok: false, message: 'Password must be at least 6 characters.' };
         }
 
         setRegisteredUser({
@@ -162,8 +172,8 @@ export default function App() {
                         }
                     >
                         <Route index element={<Home />} />
+                        <Route path="tasks" element={<Tasks />} />
                         <Route path="account" element={<AccountSettings />} />
-                        <Route path="account-settings" element={<AccountSettings />} />
                         <Route path="team/new" element={<TeamCreation />} />
                         <Route path="team/:teamId/manage" element={<TeamManagement />} />
                     </Route>

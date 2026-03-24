@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import {useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 
-export default function Login({ onLogin }) {
+export default function Login({onLogin}) {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -47,7 +47,7 @@ export default function Login({ onLogin }) {
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface"
+                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
                             />
                         </div>
 
@@ -61,12 +61,13 @@ export default function Login({ onLogin }) {
                                 value={password}
                                 onChange={(event) => setPassword(event.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface"
+                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
                             />
                         </div>
 
                         {formError && (
-                            <div className="text-sm text-secondary bg-secondary/10 border border-secondary/20 rounded-xl px-4 py-3">
+                            <div
+                                className="text-sm text-secondary bg-secondary/10 border border-secondary/20 rounded-xl px-4 py-3">
                                 {formError}
                             </div>
                         )}
@@ -86,7 +87,7 @@ export default function Login({ onLogin }) {
                     </form>
 
                     <p className="text-center text-sm text-on-surface-variant">
-                        Don&apos;t have an account?{' '}
+                        Don't have an account?{' '}
                         <Link to="/register" className="text-primary hover:underline font-medium">
                             Sign up
                         </Link>

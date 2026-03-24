@@ -44,10 +44,10 @@ export default function CreateTaskDialog({
     const [maxPetals, setMaxPetals] = useState(5);
     const [dueDate, setDueDate] = useState(getDefaultDueDateTime());
     const [errors, setErrors] = useState({});
+    const [prevOpen, setPrevOpen] = useState(false);
 
-    useEffect(() => {
-        if (!open) return;
-
+    // Reset form when dialog transitions from closed to open
+    if (open && !prevOpen) {
         setTitle('');
         setDescription('');
         setAssigneeUserId(members[0]?.userId ?? '');
@@ -55,7 +55,10 @@ export default function CreateTaskDialog({
         setMaxPetals(5);
         setDueDate(getDefaultDueDateTime());
         setErrors({});
-    }, [open, members]);
+    }
+    if (open !== prevOpen) {
+        setPrevOpen(open);
+    }
 
     useEffect(() => {
         if (!open) return;

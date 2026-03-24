@@ -20,7 +20,7 @@
 }
 
 .card-priority {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -83,6 +83,36 @@
 }
 
 .card-due-date.due-soon {
-    color: #d97706;
+    color: var(--color-tertiary);
     font-weight: 700;
+}
+
+.card-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.card-petal-count {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+    white-space: nowrap;
+}
+
+.card-petal-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+.card-petal {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.card-petal.empty {
+    opacity: 0.35;
 }

@@ -4,13 +4,13 @@
 
 /* ── Static tokens (same in both modes) ──────────────────── */
 @theme {
-    --color-primary: #1a7a50;           /* Forest Emerald      */
-    --color-primary-container: #2d9466; /* Canopy Green         */
-    --color-on-primary-container: #0e3a22; /* Deep Bark         */
-    --color-secondary: #d46882;         /* Rose Petal           */
-    --color-tertiary: #c89038;          /* Amber Sunlight       */
-    --color-petal: #f0a8bc;             /* Cherry Blossom       */
-    --color-leaf: #4ec48c;              /* Spring Leaf          */
+    --color-primary: #1a7a50;              /* Forest Emerald      */
+    --color-primary-container: #2d9466;    /* Canopy Green         */
+    --color-on-primary-container: #0e3a22; /* Deep Bark            */
+    --color-secondary: #d46882;            /* Rose Petal           */
+    --color-tertiary: #c89038;             /* Amber Sunlight       */
+    --color-petal: #f0a8bc;                /* Cherry Blossom       */
+    --color-leaf: #4ec48c;                 /* Spring Leaf          */
 }
 
 /* ── Light mode tokens ───────────────────────────────────── */

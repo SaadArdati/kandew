@@ -9,6 +9,8 @@ import {
 
 export default function TaskDetailsDialog({ task, onClose, currentTime }) {
     useEffect(() => {
+        if (!task) return;
+
         function handleEscape(event) {
             if (event.key === 'Escape') {
                 onClose();
@@ -17,7 +19,7 @@ export default function TaskDetailsDialog({ task, onClose, currentTime }) {
 
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [onClose]);
+    }, [task, onClose]);
 
     if (!task) return null;
 
@@ -26,10 +28,12 @@ export default function TaskDetailsDialog({ task, onClose, currentTime }) {
     const currentPetals = getTaskPetals(task, currentTime);
     const petalSlots = buildPetalSlots(task, currentTime);
 
+    const reviewColumns = ['review', 'qa'];
+    const doneColumns = ['done'];
     const statusLabel =
-        task.columnId === 'review'
+        reviewColumns.includes(task.columnId)
             ? 'Petals frozen in Review'
-            : task.columnId === 'done'
+            : doneColumns.includes(task.columnId)
               ? 'Petals earned on completion'
               : 'Live petal value';
 

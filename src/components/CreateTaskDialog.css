@@ -1,7 +1,8 @@
 .create-task-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.42);
+    background: color-mix(in srgb, var(--color-on-surface) 5%, transparent);
+    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -83,6 +84,15 @@
     border-radius: 10px;
     padding: 0.8rem 0.9rem;
     font: inherit;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.create-task-field input:focus,
+.create-task-field textarea:focus,
+.create-task-field select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .create-task-field textarea {

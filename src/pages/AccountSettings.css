@@ -1,6 +1,6 @@
 .account-layout {
     display: flex;
-    height: calc(100vh - 3.5rem);
+    height: 100%;
 }
 
 .account-content {
@@ -324,7 +324,7 @@
 @media (max-width: 640px) {
     .account-layout {
         height: auto;
-        min-height: calc(100vh - 3.5rem);
+        min-height: 100%;
     }
 
     .account-content {

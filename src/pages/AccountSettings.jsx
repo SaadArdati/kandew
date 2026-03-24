@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import TeamPanel from '../components/TeamPanel';
 import useTeamViewModel from '../viewmodels/useTeamViewModel';
 import { currentUser } from '../data/mockData';
@@ -9,6 +9,7 @@ import './AccountSettings.css';
 
 export default function AccountSettings() {
     const navigate = useNavigate();
+    const { onLogout } = useOutletContext();
     const { teams, activeTeamId, selectTeam } = useTeamViewModel();
 
     const [displayName, setDisplayName] = useState(currentUser.name);
@@ -55,6 +56,9 @@ export default function AccountSettings() {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        if (avatarPreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(avatarPreview);
+        }
         const previewUrl = URL.createObjectURL(file);
         setAvatarPreview(previewUrl);
     }
@@ -66,6 +70,7 @@ export default function AccountSettings() {
     }
 
     function handleSignOut() {
+        if (onLogout) onLogout();
         navigate('/login');
     }
 

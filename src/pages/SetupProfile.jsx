@@ -59,7 +59,7 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
                                 value={name}
                                 onChange={(event) => setName(event.target.value)}
                                 placeholder="Your name"
-                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface"
+                                className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
                             />
                         </div>
 

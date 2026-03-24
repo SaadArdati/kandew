@@ -17,7 +17,10 @@ export default function Home() {
 
     const [selectedTask, setSelectedTask] = useState(null);
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
-    const [now, setNow] = useState(Date.now());
+    const [now, setNow] = useState(() => Date.now());
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [priorityFilter, setPriorityFilter] = useState('all');
 
     useEffect(() => {
         const intervalId = window.setInterval(() => {
@@ -41,6 +44,36 @@ export default function Home() {
         () => getMembersByTeam(activeTeamId),
         [activeTeamId]
     );
+
+    // Filter tasksByColumn based on search, member selection, and priority
+    const filteredTasksByColumn = useMemo(() => {
+        return board.tasksByColumn.map((col) => ({
+            ...col,
+            tasks: col.tasks.filter((task) => {
+                const q = searchQuery.toLowerCase();
+                const matchesSearch = !searchQuery ||
+                    task.title.toLowerCase().includes(q) ||
+                    task.description.toLowerCase().includes(q) ||
+                    task.assignee.toLowerCase().includes(q);
+
+                const matchesMember = selectedMembers.length === 0 ||
+                    selectedMembers.includes(task.assigneeUserId);
+
+                const matchesPriority = priorityFilter === 'all' ||
+                    task.priority === priorityFilter;
+
+                return matchesSearch && matchesMember && matchesPriority;
+            }),
+        }));
+    }, [board.tasksByColumn, searchQuery, selectedMembers, priorityFilter]);
+
+    function toggleMember(userId) {
+        setSelectedMembers((prev) =>
+            prev.includes(userId)
+                ? prev.filter((id) => id !== userId)
+                : [...prev, userId]
+        );
+    }
 
     function handleOpenTask(task) {
         setSelectedTask(task);
@@ -80,7 +113,7 @@ export default function Home() {
 
                 <KanbanBoard
                     teamName={activeTeamName}
-                    tasksByColumn={board.tasksByColumn}
+                    tasksByColumn={filteredTasksByColumn}
                     draggedTaskId={board.draggedTaskId}
                     dragOverCol={board.dragOverCol}
                     dropIndex={board.dropIndex}
@@ -95,6 +128,13 @@ export default function Home() {
                     canCreateTasks={canCreateTasks}
                     onOpenCreateTask={handleOpenCreateTask}
                     currentTime={now}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    members={teamMembers}
+                    selectedMembers={selectedMembers}
+                    onToggleMember={toggleMember}
+                    priorityFilter={priorityFilter}
+                    onPriorityChange={setPriorityFilter}
                 />
             </div>
 

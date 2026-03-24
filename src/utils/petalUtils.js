@@ -1,10 +1,27 @@
+/**
+ * Petal scoring system for Kandew tasks.
+ *
+ * Each task starts with a set number of petals (1-5). Petals decay linearly
+ * over time from creation to due date. When a task enters review, its petals
+ * are frozen at their current value. When completed, the frozen value becomes
+ * the earned score. Finishing tasks early = more petals earned.
+ */
+
 const MAX_ALLOWED_PETALS = 5;
 const EMPTY_PETAL = '◌';
 
+/** Column IDs that represent the "review" stage (petals freeze here) */
+const REVIEW_COLUMNS = new Set(['review', 'qa']);
+
+/** Column IDs that represent the "done" stage (petals are locked as earned) */
+const DONE_COLUMNS = new Set(['done']);
+
+/** Clamp a number between min and max. */
 export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+/** Parse a date value (string, Date, or null) into a Date object or null. */
 export function parseTaskDate(value) {
     if (!value) return null;
 
@@ -45,6 +62,7 @@ export function normalizeTask(task) {
     };
 }
 
+/** Calculate how many petals a task currently has based on time remaining. */
 export function getCurrentActivePetals(task, referenceTime = new Date()) {
     const normalizedTask = normalizeTask(task);
     const maxPetals = normalizedTask.maxPetals;
@@ -79,13 +97,14 @@ export function getCurrentActivePetals(task, referenceTime = new Date()) {
     return clamp(Math.ceil(maxPetals * remainingRatio), 0, maxPetals);
 }
 
+/** Get the display petal count for a task, accounting for review freeze and completion. */
 export function getTaskPetals(task, referenceTime = new Date()) {
     const normalizedTask = normalizeTask(task);
     const maxPetals = normalizedTask.maxPetals;
 
     if (maxPetals === 0) return 0;
 
-    if (normalizedTask.columnId === 'review') {
+    if (REVIEW_COLUMNS.has(normalizedTask.columnId)) {
         if (normalizedTask.frozenPetalsAtReview != null) {
             return clamp(normalizedTask.frozenPetalsAtReview, 0, maxPetals);
         }
@@ -93,7 +112,7 @@ export function getTaskPetals(task, referenceTime = new Date()) {
         return getCurrentActivePetals(normalizedTask, normalizedTask.reviewEnteredAt ?? referenceTime);
     }
 
-    if (normalizedTask.columnId === 'done') {
+    if (DONE_COLUMNS.has(normalizedTask.columnId)) {
         if (normalizedTask.earnedPetals != null) {
             return clamp(normalizedTask.earnedPetals, 0, maxPetals);
         }
@@ -111,18 +130,19 @@ export function getTaskPetals(task, referenceTime = new Date()) {
 export function getEarnedPetals(task) {
     const normalizedTask = normalizeTask(task);
 
-    if (normalizedTask.columnId !== 'done') {
+    if (!DONE_COLUMNS.has(normalizedTask.columnId)) {
         return 0;
     }
 
     return clamp(Number(normalizedTask.earnedPetals ?? 0), 0, normalizedTask.maxPetals);
 }
 
+/** Transition a task to a new column, freezing or locking petals as needed. */
 export function transitionTaskForColumn(task, targetColumnId, referenceTime = new Date()) {
     const normalizedTask = normalizeTask(task);
     const nowIso = (parseTaskDate(referenceTime) ?? new Date()).toISOString();
 
-    if (targetColumnId === 'review') {
+    if (REVIEW_COLUMNS.has(targetColumnId)) {
         return {
             ...normalizedTask,
             columnId: targetColumnId,
@@ -133,9 +153,9 @@ export function transitionTaskForColumn(task, targetColumnId, referenceTime = ne
         };
     }
 
-    if (targetColumnId === 'done') {
+    if (DONE_COLUMNS.has(targetColumnId)) {
         const earnedPetals =
-            normalizedTask.columnId === 'review'
+            REVIEW_COLUMNS.has(normalizedTask.columnId)
                 ? clamp(
                       Number(
                           normalizedTask.frozenPetalsAtReview ??
@@ -180,7 +200,7 @@ export function formatTaskDueDate(dateValue) {
 export function isDueSoon(task, referenceTime = new Date()) {
     const normalizedTask = normalizeTask(task);
 
-    if (normalizedTask.columnId === 'done' || normalizedTask.columnId === 'review') {
+    if (DONE_COLUMNS.has(normalizedTask.columnId) || REVIEW_COLUMNS.has(normalizedTask.columnId)) {
         return false;
     }
 

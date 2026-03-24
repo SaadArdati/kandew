@@ -1,10 +1,16 @@
-import {Link, NavLink} from 'react-router-dom';
+import {Link, NavLink, useNavigate} from 'react-router-dom';
 import {useTheme} from '../context/useTheme';
 import {useState} from 'react';
 
-export default function Navbar() {
+export default function Navbar({onLogout}) {
     const {dark, toggleTheme} = useTheme();
+    const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
+
+    function handleLogout() {
+        if (onLogout) onLogout();
+        navigate('/login');
+    }
 
     const linkClass = ({isActive}) =>
         `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -24,6 +30,7 @@ export default function Navbar() {
                     {/* Desktop links */}
                     <div className="hidden md:flex items-center gap-2">
                         <NavLink to="/" className={linkClass}>Home</NavLink>
+                        <NavLink to="/tasks" className={linkClass}>Tasks</NavLink>
                         <button
                             onClick={toggleTheme}
                             aria-label="Toggle theme"
@@ -31,6 +38,14 @@ export default function Navbar() {
                         >
                             {dark ? '☀️' : '🌙'}
                         </button>
+                        {onLogout && (
+                            <button
+                                onClick={handleLogout}
+                                className="ml-2 px-3 py-1.5 rounded-md text-sm font-medium border border-outline text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                            >
+                                Log Out
+                            </button>
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -56,6 +71,7 @@ export default function Navbar() {
             {menuOpen && (
                 <div className="md:hidden px-4 pb-4 flex flex-col gap-1 bg-surface-container border-t border-outline">
                     <NavLink to="/" className={linkClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
+                    <NavLink to="/tasks" className={linkClass} onClick={() => setMenuOpen(false)}>Tasks</NavLink>
                     <button
                         onClick={toggleTheme}
                         aria-label="Toggle theme"
@@ -63,6 +79,14 @@ export default function Navbar() {
                     >
                         {dark ? '☀️' : '🌙'}
                     </button>
+                    {onLogout && (
+                        <button
+                            onClick={() => { handleLogout(); setMenuOpen(false); }}
+                            className="self-start px-3 py-2 rounded-md text-sm font-medium text-on-surface-variant hover:text-secondary transition-colors"
+                        >
+                            Log Out
+                        </button>
+                    )}
                 </div>
             )}
         </nav>
