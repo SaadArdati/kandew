@@ -3,7 +3,9 @@
 A team-based kanban board for managing tasks. Built with React, Tailwind CSS, and React Router.
 
 **Topic:** Task Management / Kanban Board
+
 **Data Entities:** Teams, Tasks, Members, Petals (scoring)
+
 **Deployed Application:** https://saadardati.github.io/kandew
 
 ## Team Members
@@ -33,7 +35,7 @@ npm -v
 ### 2. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR-REPO-URL.git
+git clone https://github.com/SaadArdati/kandew.git
 cd kandew
 ```
 
@@ -85,6 +87,35 @@ Open this link in your browser to view the application.
 - Due date alerts for tasks nearing their deadline
 - Role-based access — only team creators can add tasks
 
+## Screenshots
+
+### Home Page (Light Mode)
+![Home Page (Light Mode)](screenshots/HomepageLight.png)
+
+### Home Page (Dark Mode)
+![Home Page (Dark Mode)](screenshots/Homepage.png)
+
+### Tasks Page
+![Tasks Page](screenshots/TasksPage.png)
+
+### Task Dialog
+![Task Dialog](screenshots/TaskDialog.png)
+
+### Task Creation Dialog
+![Task Creation Dialog](screenshots/TaskCreationDialog.png)
+
+### Team Management (Screen One)
+![Team Management (Screen One)](screenshots/TeamManagement1.png)
+
+### Team Management (Screen Two)
+![Team Management (Screen Two)](screenshots/TeamManagement2.png)
+
+### Team Creation
+![Team Creation](screenshots/TeamCreation1.png)
+
+### Account Settings
+![Account Settings](screenshots/AccountSettingsPage.png)
+
 ## Contributions
 
 ### Saad Ardati
@@ -128,12 +159,46 @@ Open this link in your browser to view the application.
 - Built the Forgot Password page with email validation and confirmation state
 - Built the Setup Profile page with name, bio, and avatar preset selection
 
+## Use of Mock Data
 
-## Mock Data
+This project uses **mock data** to simulate backend interactions and enable full functionality without requiring a real server or database.
+
+### How Mock Data is Used
+
+- All application data (users, teams, tasks, memberships) is stored in local files (e.g., `mockData.js`).
+- These files act as a **temporary data source**, similar to what a backend API would normally provide.
+- The application reads from and writes to this mock data through a **repository layer** (e.g., `taskRepository.js`), which mimics API calls.
+
+### Simulating User Interactions
+
+Mock data is used to simulate real interactions such as:
+
+- Creating tasks  
+- Updating task status (drag-and-drop between columns)  
+- Assigning users to tasks  
+- Tracking task progress and points (petals system)  
+- Filtering tasks and calculating statistics in the Account Settings page  
+
+All updates are handled in memory, meaning:
+- Changes are immediately reflected in the UI
+- No actual network requests are made
+
+### Limitations
+
+- Data is **not persistent** — refreshing the page resets all changes  
+- There is no real authentication or database storage  
+- Multi-user interaction is simulated rather than real  
+
+### Purpose
+
+Using mock data allows:
+- Faster development and testing  
+- Clear separation between frontend and backend logic  
+- Easy transition to a real backend in the future  
 
 All data is stored in local React state using mock arrays in `src/data/mockData.js`. The app simulates CRUD operations (
-create, read, update, delete) through a repository pattern in `src/repositories/`. Changes persist during the session
-but reset on page refresh. No backend is used in Phase 1.
+create, read, update, delete) through a repository pattern in `src/repositories/`. 
+The current structure (repository + mock data) is designed so that it can later be replaced with real API calls with minimal changes to the rest of the application.
 
 ## Tech Stack
 
