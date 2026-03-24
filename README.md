@@ -4,6 +4,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 
 **Topic:** Task Management / Kanban Board
 **Data Entities:** Teams, Tasks, Members, Petals (scoring)
+**Deployed Application:** https://saadardati.github.io/kandew
 
 ## Team Members
 
@@ -13,6 +14,76 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 | Leen Nassar  | Team Creation, Team Management                  |
 | Nour Mardini | Account Settings, Task Details, Task Creation   |
 | Lynn Hamieh  | Login, Register, Forgot Password, Setup Profile |
+
+## Running the Frontend Locally
+
+### 1. Prerequisites
+Make sure you have the following installed:
+
+- Node.js (version 18 or 20 recommended)
+- npm (comes with Node.js)
+
+Check installation:
+
+```bash
+node -v
+npm -v
+```
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR-REPO-URL.git
+cd kandew
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Start the Development Server
+
+```bash
+npm run dev
+```
+
+### 5. Open the Application
+
+After running the server, you will see a local URL such as:
+
+```bash
+http://localhost:5173/
+```
+
+Open this link in your browser to view the application.
+
+## Pages
+
+1. **Home** — Kanban board with drag-and-drop, team switching, task creation, and filter bar
+2. **Tasks** — List view of all tasks with search bar and filters (priority, team, status)
+3. **Login** — Email/password login with validation
+4. **Register** — Account registration with validation
+5. **Forgot Password** — Password reset request
+6. **Setup Profile** — Post-registration profile completion with avatar selection
+7. **Account Settings** — User profile, petal points tracking, sign out
+8. **Team Creation** — Create new teams with name and icon
+9. **Team Management** — Manage members, rename team, view stats
+
+## Features
+
+- Light/dark theme toggle
+- Drag-and-drop task movement between columns
+- Petal scoring system — tasks lose petals as the due date approaches
+- Task creation with assignee, priority, due date, and petal count
+- Team sidebar with created/member sections
+- Member avatar bubble filters on the kanban board
+- Responsive design — works on mobile, tablet, and desktop
+- Form validation on all input forms
+- Modals for task details and task creation
+- Due date alerts for tasks nearing their deadline
+- Role-based access — only team creators can add tasks
 
 ## Contributions
 
@@ -57,40 +128,6 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 - Built the Forgot Password page with email validation and confirmation state
 - Built the Setup Profile page with name, bio, and avatar preset selection
 
-## Setup
-
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Pages
-
-1. **Home** — Kanban board with drag-and-drop, team switching, task creation, and filter bar
-2. **Tasks** — List view of all tasks with search bar and filters (priority, team, status)
-3. **Login** — Email/password login with validation
-4. **Register** — Account registration with validation
-5. **Forgot Password** — Password reset request
-6. **Setup Profile** — Post-registration profile completion with avatar selection
-7. **Account Settings** — User profile, petal points tracking, sign out
-8. **Team Creation** — Create new teams with name and icon
-9. **Team Management** — Manage members, rename team, view stats
-
-## Features
-
-- Light/dark theme toggle
-- Drag-and-drop task movement between columns
-- Petal scoring system — tasks lose petals as the due date approaches
-- Task creation with assignee, priority, due date, and petal count
-- Team sidebar with created/member sections
-- Member avatar bubble filters on the kanban board
-- Responsive design — works on mobile, tablet, and desktop
-- Form validation on all input forms
-- Modals for task details and task creation
-- Due date alerts for tasks nearing their deadline
-- Role-based access — only team creators can add tasks
 
 ## Mock Data
 
