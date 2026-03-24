@@ -110,9 +110,6 @@ export default function AccountSettings() {
                             <div className="profile-card-meta">
                                 <h2>{displayName}</h2>
                                 <p>{currentUser.email}</p>
-                                <span className="account-role-badge">
-                                    {currentUser.role ?? 'member'}
-                                </span>
                             </div>
                         </div>
 
@@ -165,9 +162,8 @@ export default function AccountSettings() {
                         </div>
 
                         <div
-                            className={`points-summary ${
-                                selectedTeamFilter === 'all' ? 'points-summary-single' : ''
-                            }`}
+                            className={`points-summary ${selectedTeamFilter === 'all' ? 'points-summary-single' : ''
+                                }`}
                         >
                             <div className="points-box">
                                 <span className="points-label">Total Points</span>

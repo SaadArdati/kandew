@@ -185,20 +185,22 @@ export const initialMembers = memberships.map((membership) => {
 export const columns = [
     { id: 'todo', title: 'To Do', teamId: 'team-1' },
     { id: 'in-progress', title: 'In Progress', teamId: 'team-1' },
-    { id: 'review', title: 'Review', teamId: 'team-1' },
+    { id: 'review', title: 'In Review', teamId: 'team-1' },
     { id: 'done', title: 'Done', teamId: 'team-1' },
 
-    { id: 'backlog', title: 'Backlog', teamId: 'team-2' },
+    { id: 'todo', title: 'To Do', teamId: 'team-2' },
     { id: 'in-progress', title: 'In Progress', teamId: 'team-2' },
+    { id: 'review', title: 'In Review', teamId: 'team-2' },
     { id: 'done', title: 'Done', teamId: 'team-2' },
 
     { id: 'todo', title: 'To Do', teamId: 'team-3' },
     { id: 'in-progress', title: 'In Progress', teamId: 'team-3' },
+    { id: 'review', title: 'In Review', teamId: 'team-3' },
     { id: 'done', title: 'Done', teamId: 'team-3' },
 
     { id: 'todo', title: 'To Do', teamId: 'team-4' },
     { id: 'in-progress', title: 'In Progress', teamId: 'team-4' },
-    { id: 'qa', title: 'QA', teamId: 'team-4' },
+    { id: 'review', title: 'In Review', teamId: 'team-4' },
     { id: 'done', title: 'Done', teamId: 'team-4' },
 ];
 
@@ -310,7 +312,7 @@ export const initialTasks = [
         title: 'Redesign landing page',
         description: 'Fresh layout with updated brand colors.',
         priority: 'high',
-        columnId: 'backlog',
+        columnId: 'todo',
         teamId: 'team-2',
         assigneeUserId: 'user-7',
         assignee: 'Nadia Frem',

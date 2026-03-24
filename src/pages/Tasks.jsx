@@ -20,6 +20,20 @@ export default function Tasks() {
     const [teamFilter, setTeamFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
 
+    const statusOptions = useMemo(() => ([
+        { value: 'todo', label: 'To Do' },
+        { value: 'in-progress', label: 'In Progress' },
+        { value: 'review', label: 'In Review' },
+        { value: 'done', label: 'Done' },
+    ]), []);
+
+    const statusLabelMap = useMemo(() => ({
+        todo: 'To Do',
+        'in-progress': 'In Progress',
+        review: 'In Review',
+        done: 'Done',
+    }), []);
+
     // Gather all tasks across all teams
     const allTasks = useMemo(
         () => teams.flatMap((team) => {
@@ -53,12 +67,6 @@ export default function Tasks() {
             return matchesSearch && matchesPriority && matchesTeam && matchesStatus;
         });
     }, [allTasks, search, priorityFilter, teamFilter, statusFilter]);
-
-    // Collect unique column IDs for the status filter
-    const statuses = useMemo(() => {
-        const set = new Set(allTasks.map((t) => t.columnId));
-        return [...set];
-    }, [allTasks]);
 
     return (
         <div className="tasks-layout">
@@ -120,8 +128,10 @@ export default function Tasks() {
                             aria-label="Filter by status"
                         >
                             <option value="all">All Statuses</option>
-                            {statuses.map((s) => (
-                                <option key={s} value={s}>{s.replace('-', ' ')}</option>
+                            {statusOptions.map((status) => (
+                                <option key={status.value} value={status.value}>
+                                    {status.label}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -142,7 +152,9 @@ export default function Tasks() {
                                             <span className={`task-priority-badge priority-${task.priority}`}>
                                                 {task.priority}
                                             </span>
-                                            <span className="task-status-badge">{task.columnId.replace('-', ' ')}</span>
+                                            <span className="task-status-badge">
+                                                {statusLabelMap[task.columnId] ?? task.columnId}
+                                            </span>
                                         </div>
 
                                         <h3 className="tasks-list-title">{task.title}</h3>

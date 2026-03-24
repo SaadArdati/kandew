@@ -101,11 +101,6 @@ export default function App() {
         setNeedsProfileSetup(false);
     }
 
-    function handleLogout() {
-        setIsAuthenticated(false);
-        setNeedsProfileSetup(false);
-    }
-
     return (
         <ThemeProvider>
             <BrowserRouter>
@@ -167,7 +162,7 @@ export default function App() {
                                 isAuthenticated={isAuthenticated}
                                 needsProfileSetup={needsProfileSetup}
                             >
-                                <Layout onLogout={handleLogout} />
+                                <Layout />
                             </ProtectedRoute>
                         }
                     >
