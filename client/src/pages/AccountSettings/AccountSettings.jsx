@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import TeamPanel from '../components/TeamPanel';
-import useTeamViewModel from '../viewmodels/useTeamViewModel';
-import { currentUser } from '../data/mockData';
-import { getTasksByTeam } from '../repositories/taskRepository';
-import { getEarnedPetals } from '../utils/petalUtils';
+import TeamPanel from '../../components/TeamPanel/TeamPanel';
+import useTeamViewModel from '../../viewmodels/useTeamViewModel';
+import { currentUser } from '../../data/mockData';
+import { getTasksByTeam } from '../../repositories/taskRepository';
+import { getEarnedPetals } from '../../utils/petalUtils';
 import './AccountSettings.css';
 
 export default function AccountSettings() {

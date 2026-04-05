@@ -5,7 +5,7 @@ import {
     formatTaskDueDate,
     getTaskMaxPetals,
     getTaskPetals,
-} from '../utils/petalUtils';
+} from '../../utils/petalUtils';
 
 export default function TaskDetailsDialog({ task, onClose, currentTime }) {
     useEffect(() => {

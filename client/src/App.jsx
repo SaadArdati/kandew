@@ -2,16 +2,16 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import SetupProfile from './pages/SetupProfile';
-import ForgotPassword from './pages/ForgotPassword';
-import AccountSettings from './pages/AccountSettings';
-import TeamManagement from './pages/TeamManagement';
-import TeamCreation from './pages/TeamCreation';
-import Tasks from './pages/Tasks';
+import Layout from './components/Layout/Layout';
+import Home from './pages/Home/Home';
+import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
+import SetupProfile from './pages/SetupProfile/SetupProfile';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import AccountSettings from './pages/AccountSettings/AccountSettings';
+import TeamManagement from './pages/TeamManagement/TeamManagement';
+import TeamCreation from './pages/TeamCreation/TeamCreation';
+import Tasks from './pages/Tasks/Tasks';
 
 function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (isAuthenticated) {

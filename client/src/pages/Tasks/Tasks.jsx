@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TeamPanel from '../components/TeamPanel';
-import useTeamViewModel from '../viewmodels/useTeamViewModel';
-import { getTasksByTeam } from '../repositories/taskRepository';
-import { currentUser } from '../data/mockData';
-import { formatTaskDueDate, getTaskPetals, getTaskMaxPetals } from '../utils/petalUtils';
+import TeamPanel from '../../components/TeamPanel/TeamPanel';
+import useTeamViewModel from '../../viewmodels/useTeamViewModel';
+import { getTasksByTeam } from '../../repositories/taskRepository';
+import { currentUser } from '../../data/mockData';
+import { formatTaskDueDate, getTaskPetals, getTaskMaxPetals } from '../../utils/petalUtils';
 import './Tasks.css';
 
 /**

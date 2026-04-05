@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useTeamCreationViewModel from '../viewmodels/useTeamCreationViewModel';
+import useTeamCreationViewModel from '../../viewmodels/useTeamCreationViewModel';
 
 const PRESET_ICONS = [
     'https://picsum.photos/seed/alpha/80/80',

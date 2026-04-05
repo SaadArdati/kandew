@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useTeamManagementViewModel from '../viewmodels/useTeamManagementViewModel';
+import useTeamManagementViewModel from '../../viewmodels/useTeamManagementViewModel';
 
 function Avatar({ src, name, size = 10 }) {
     return src ? (

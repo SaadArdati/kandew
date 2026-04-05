@@ -1,5 +1,5 @@
 import './KanbanBoard.css';
-import KanbanCard from './KanbanCard';
+import KanbanCard from '../KanbanCard/KanbanCard';
 
 export default function KanbanBoard({
     teamName,

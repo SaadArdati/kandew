@@ -5,7 +5,7 @@ import {
     getTaskMaxPetals,
     getTaskPetals,
     isDueSoon,
-} from '../utils/petalUtils';
+} from '../../utils/petalUtils';
 
 export default function KanbanCard({ task, onDragStart, isDragging, onClick, currentTime }) {
     const formattedDueDate = formatTaskDueDate(task.dueDate);

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { initialMembers } from '../data/mockData';
+import { initialMembers } from '../../data/mockData';
 import './TeamPanel.css';
 
 export default function TeamPanel({ teams, activeTeam, onSelectTeam, profile }) {

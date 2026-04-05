@@ -1,5 +1,5 @@
 import {Link, NavLink, useNavigate} from 'react-router-dom';
-import {useTheme} from '../context/useTheme';
+import {useTheme} from '../../context/useTheme';
 import {useState} from 'react';
 
 export default function Navbar({onLogout}) {

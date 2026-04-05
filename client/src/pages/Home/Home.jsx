@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
-import TeamPanel from '../components/TeamPanel';
-import KanbanBoard from '../components/KanbanBoard';
-import TaskDetailsDialog from '../components/TaskDetailsDialog';
-import CreateTaskDialog from '../components/CreateTaskDialog';
-import useTeamViewModel from '../viewmodels/useTeamViewModel';
-import useBoardViewModel from '../viewmodels/useBoardViewModel';
-import { currentUser } from '../data/mockData';
-import { getMembersByTeam } from '../repositories/taskRepository';
+import TeamPanel from '../../components/TeamPanel/TeamPanel';
+import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
+import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDialog';
+import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog';
+import useTeamViewModel from '../../viewmodels/useTeamViewModel';
+import useBoardViewModel from '../../viewmodels/useBoardViewModel';
+import { currentUser } from '../../data/mockData';
+import { getMembersByTeam } from '../../repositories/taskRepository';
 
 export default function Home() {
     const navigate = useNavigate();
