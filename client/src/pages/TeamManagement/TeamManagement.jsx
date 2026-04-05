@@ -10,10 +10,7 @@ function Avatar({ src, name, size = 10 }) {
             className={`w-${size} h-${size} rounded-full object-cover ring-2 ring-outline`}
         />
     ) : (
-        <div
-            className={`w-${size} h-${size} rounded-full bg-primary-container text-on-primary-container
-                        flex items-center justify-center font-semibold text-sm ring-2 ring-outline`}
-        >
+        <div className={`w-${size} h-${size} rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-semibold text-sm ring-2 ring-outline`}>
             {name?.[0]?.toUpperCase() ?? '?'}
         </div>
     );
@@ -60,6 +57,9 @@ export default function TeamManagement() {
         renameTeam,
         changeIcon,
         stats,
+        petalValue,
+        setPetalValue,
+        memberPetals,
     } = useTeamManagementViewModel(teamId);
 
     const [tab, setTab] = useState('members');
@@ -67,6 +67,8 @@ export default function TeamManagement() {
     const [renameMode, setRenameMode] = useState(false);
     const [iconUrl, setIconUrl] = useState('');
     const [kickTarget, setKickTarget] = useState(null);
+    const [petalInput, setPetalInput] = useState(String(petalValue));
+    const [petalEditMode, setPetalEditMode] = useState(false);
 
     if (!team) {
         return (
@@ -94,13 +96,21 @@ export default function TeamManagement() {
         navigate('/');
     }
 
+    function handlePetalValueSave(e) {
+        e.preventDefault();
+        const val = parseFloat(petalInput);
+        if (!isNaN(val) && val >= 0) {
+            setPetalValue(val);
+            setPetalEditMode(false);
+        }
+    }
+
     return (
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/')}
-                    className="text-on-surface-variant hover:text-on-surface transition-colors text-sm"
+                    className="text-on-surface-variant hover:text-on-surface transition-colors text-sm cursor-pointer"
                 >
                     ← Back
                 </button>
@@ -119,15 +129,42 @@ export default function TeamManagement() {
                 <StatCard label="Petals Earned" value={stats.petals} icon="🌸" />
             </div>
 
+            <div className="bg-surface-container border border-outline rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    <div>
+                        <p className="text-sm font-medium text-on-surface">Petal Value</p>
+                        <p className="text-xs text-on-surface-variant">How much each petal is worth in USD</p>
+                    </div>
+                </div>
+                {petalEditMode ? (
+                    <form onSubmit={handlePetalValueSave} className="flex gap-2 items-center">
+                        <span className="text-sm text-on-surface-variant">$</span>
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={petalInput}
+                            onChange={e => setPetalInput(e.target.value)}
+                            className="w-24 bg-surface border border-outline rounded-xl px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
+                        />
+                        <button type="submit" className="bg-primary hover:bg-primary-container text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer">Save</button>
+                        <button type="button" onClick={() => setPetalEditMode(false)} className="text-xs text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">Cancel</button>
+                    </form>
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-on-surface">${petalValue.toFixed(2)}</span>
+                        <button onClick={() => { setPetalInput(String(petalValue)); setPetalEditMode(true); }} className="text-sm text-primary hover:underline cursor-pointer">Edit</button>
+                    </div>
+                )}
+            </div>
+
             <div className="flex gap-1 bg-surface-container rounded-xl p-1 w-fit">
                 {['members', 'settings'].map(t => (
                     <button
                         key={t}
                         onClick={() => setTab(t)}
-                        className={`px-5 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors
-                            ${tab === t
-                                ? 'bg-primary text-white shadow'
-                                : 'text-on-surface-variant hover:text-on-surface'}`}
+                        className={`px-5 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors cursor-pointer ${tab === t ? 'bg-primary text-white shadow' : 'text-on-surface-variant hover:text-on-surface'}`}
                     >
                         {t}
                     </button>
@@ -136,76 +173,58 @@ export default function TeamManagement() {
 
             {tab === 'members' && (
                 <div className="space-y-4">
-
-                    <form
-                        onSubmit={e => { e.preventDefault(); inviteMember(); }}
-                        className="flex gap-2"
-                    >
+                    <form onSubmit={e => { e.preventDefault(); inviteMember(); }} className="flex gap-2">
                         <input
                             type="email"
                             placeholder="Invite by email…"
                             value={inviteEmail}
                             onChange={e => setInviteEmail(e.target.value)}
                             required
-                            className="flex-1 bg-surface-container border border-outline rounded-xl
-                                       px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant
-                                       focus:outline-none focus:ring-2 focus:ring-primary transition"
+                            className="flex-1 bg-surface-container border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition"
                         />
-                        <button
-                            type="submit"
-                            className="bg-primary hover:bg-primary-container text-white px-5 py-2
-                                       rounded-xl text-sm font-semibold transition-colors"
-                        >
+                        <button type="submit" className="bg-primary hover:bg-primary-container text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer">
                             Invite
                         </button>
                     </form>
 
                     <div className="space-y-2">
-                        {members.map(member => (
-                            <div
-                                key={member.id}
-                                className="flex items-center gap-3 bg-surface-container
-                                           border border-outline rounded-2xl px-4 py-3"
-                            >
-                                <Avatar src={member.avatar} name={member.name} size={9} />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-on-surface truncate">{member.name}</p>
-                                    <p className="text-xs text-on-surface-variant truncate">{member.email}</p>
-                                </div>
-                                <Badge role={member.role} />
-
-                                {member.role !== 'owner' && (
-                                    kickTarget === member.id ? (
-                                        <div className="flex gap-2 items-center">
-                                            <span className="text-xs text-secondary">Sure?</span>
-                                            <button
-                                                onClick={() => { kickMember(member.id); setKickTarget(null); }}
-                                                className="text-xs text-secondary font-semibold hover:underline"
-                                            >Yes</button>
-                                            <button
-                                                onClick={() => setKickTarget(null)}
-                                                className="text-xs text-on-surface-variant hover:underline"
-                                            >No</button>
+                        {members.map(member => {
+                            const petals = memberPetals[member.userId] ?? 0;
+                            const earnings = (petals * petalValue).toFixed(2);
+                            return (
+                                <div key={member.id} className="flex items-center gap-3 bg-surface-container border border-outline rounded-2xl px-4 py-3">
+                                    <Avatar src={member.avatar} name={member.name} size={9} />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-on-surface truncate">{member.name}</p>
+                                        <p className="text-xs text-on-surface-variant truncate">{member.email}</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-xs text-on-surface-variant">🌸 {petals} petals</span>
+                                            <span className="text-xs text-tertiary font-medium">${earnings}</span>
                                         </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => setKickTarget(member.id)}
-                                            className="text-xs text-on-surface-variant hover:text-secondary
-                                                       transition-colors px-2 py-1 rounded-lg hover:bg-secondary/10"
-                                        >
-                                            Kick
-                                        </button>
-                                    )
-                                )}
-                            </div>
-                        ))}
+                                    </div>
+                                    <Badge role={member.role} />
+                                    {member.role !== 'owner' && (
+                                        kickTarget === member.id ? (
+                                            <div className="flex gap-2 items-center">
+                                                <span className="text-xs text-secondary">Sure?</span>
+                                                <button onClick={() => { kickMember(member.id); setKickTarget(null); }} className="text-xs text-secondary font-semibold hover:underline cursor-pointer">Yes</button>
+                                                <button onClick={() => setKickTarget(null)} className="text-xs text-on-surface-variant hover:underline cursor-pointer">No</button>
+                                            </div>
+                                        ) : (
+                                            <button onClick={() => setKickTarget(member.id)} className="text-xs text-on-surface-variant hover:text-secondary transition-colors px-2 py-1 rounded-lg hover:bg-secondary/10 cursor-pointer">
+                                                Kick
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
 
             {tab === 'settings' && (
                 <div className="space-y-5">
-
                     <div className="bg-surface-container border border-outline rounded-2xl p-5 space-y-3">
                         <h2 className="font-semibold text-on-surface">Team Name</h2>
                         {renameMode ? (
@@ -215,35 +234,15 @@ export default function TeamManagement() {
                                     onChange={e => setNewName(e.target.value)}
                                     required
                                     minLength={2}
-                                    className="flex-1 bg-surface border border-outline rounded-xl
-                                               px-4 py-2 text-sm text-on-surface
-                                               focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                    className="flex-1 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
                                 />
-                                <button
-                                    type="submit"
-                                    className="bg-primary hover:bg-primary-container text-white
-                                               px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRenameMode(false)}
-                                    className="px-4 py-2 rounded-xl text-sm text-on-surface-variant
-                                               hover:bg-surface-container-high transition-colors"
-                                >
-                                    Cancel
-                                </button>
+                                <button type="submit" className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer">Save</button>
+                                <button type="button" onClick={() => setRenameMode(false)} className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer">Cancel</button>
                             </form>
                         ) : (
                             <div className="flex items-center justify-between">
                                 <span className="text-on-surface">{team.name}</span>
-                                <button
-                                    onClick={() => { setNewName(team.name); setRenameMode(true); }}
-                                    className="text-sm text-primary hover:underline"
-                                >
-                                    Edit
-                                </button>
+                                <button onClick={() => { setNewName(team.name); setRenameMode(true); }} className="text-sm text-primary hover:underline cursor-pointer">Edit</button>
                             </div>
                         )}
                     </div>
@@ -258,55 +257,28 @@ export default function TeamManagement() {
                                     placeholder="Paste image URL…"
                                     value={iconUrl}
                                     onChange={e => setIconUrl(e.target.value)}
-                                    className="flex-1 bg-surface border border-outline rounded-xl
-                                               px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant
-                                               focus:outline-none focus:ring-2 focus:ring-primary transition"
+                                    className="flex-1 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition"
                                 />
-                                <button
-                                    type="submit"
-                                    className="bg-primary hover:bg-primary-container text-white
-                                               px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                                >
-                                    Update
-                                </button>
+                                <button type="submit" className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer">Update</button>
                             </form>
                         </div>
                     </div>
 
                     <div className="bg-surface-container border border-secondary/40 rounded-2xl p-5 space-y-3">
                         <h2 className="font-semibold text-secondary">Danger Zone</h2>
-                        <p className="text-sm text-on-surface-variant">
-                            Deleting this team is permanent. All tasks and members will be removed.
-                        </p>
+                        <p className="text-sm text-on-surface-variant">Deleting this team is permanent. All tasks and members will be removed.</p>
                         {confirmDelete ? (
                             <div className="flex gap-3 items-center">
                                 <span className="text-sm text-secondary font-medium">Are you absolutely sure?</span>
-                                <button
-                                    onClick={handleDelete}
-                                    className="bg-secondary text-white px-4 py-2 rounded-xl text-sm
-                                               font-semibold hover:opacity-90 transition-opacity"
-                                >
-                                    Yes, delete
-                                </button>
-                                <button
-                                    onClick={() => setConfirmDelete(false)}
-                                    className="px-4 py-2 rounded-xl text-sm text-on-surface-variant
-                                               hover:bg-surface-container-high transition-colors"
-                                >
-                                    Cancel
-                                </button>
+                                <button onClick={handleDelete} className="bg-secondary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer">Yes, delete</button>
+                                <button onClick={() => setConfirmDelete(false)} className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer">Cancel</button>
                             </div>
                         ) : (
-                            <button
-                                onClick={() => setConfirmDelete(true)}
-                                className="border border-secondary text-secondary px-5 py-2 rounded-xl
-                                           text-sm font-semibold hover:bg-secondary/10 transition-colors"
-                            >
+                            <button onClick={() => setConfirmDelete(true)} className="border border-secondary text-secondary px-5 py-2 rounded-xl text-sm font-semibold hover:bg-secondary/10 transition-colors cursor-pointer">
                                 Delete Team
                             </button>
                         )}
                     </div>
-
                 </div>
             )}
         </div>
