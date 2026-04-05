@@ -3,15 +3,15 @@ import { useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 
 import Layout from './components/Layout/Layout';
-import Home from './pages/Home/Home';
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import SetupProfile from './pages/SetupProfile/SetupProfile';
-import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
-import AccountSettings from './pages/AccountSettings/AccountSettings';
-import TeamManagement from './pages/TeamManagement/TeamManagement';
-import TeamCreation from './pages/TeamCreation/TeamCreation';
-import Tasks from './pages/Tasks/Tasks';
+import Home from './components/Home/Home';
+import Login from './components/Login/Login';
+import Register from './components/Register/Register';
+import SetupProfile from './components/SetupProfile/SetupProfile';
+import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import AccountSettings from './components/AccountSettings/AccountSettings';
+import TeamManagement from './components/TeamManagement/TeamManagement';
+import TeamCreation from './components/TeamCreation/TeamCreation';
+import Tasks from './components/Tasks/Tasks';
 
 function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (isAuthenticated) {
