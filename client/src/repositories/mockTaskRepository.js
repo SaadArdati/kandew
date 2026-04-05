@@ -1,12 +1,6 @@
-/**
- * Mock task repository — in-memory data store that simulates backend CRUD.
- * Data resets on page refresh. Will be swapped for a live API in Phase 2
- * by changing the re-export in taskRepository.js.
- */
 import { teams, columns, initialTasks, initialMembers } from '../data/mockData';
 import { getEarnedPetals, normalizeTask } from '../utils/petalUtils';
 
-// Module-level state — persists across renders but resets on refresh
 let allTeams = [...teams];
 let allMembers = [...initialMembers];
 let tasks = initialTasks.map(normalizeTask);
@@ -19,14 +13,12 @@ export function getTeamById(teamId) {
     return allTeams.find((team) => team.id === teamId);
 }
 
-export function createTeam(name, icon, creatorUserId) {
+export function createTeam(name, icon) {
     const newTeam = {
         id: `team-${Date.now()}`,
         name,
         icon: icon || `https://picsum.photos/seed/${Date.now()}/80/80`,
-        creatorUserId: creatorUserId || null,
     };
-
     allTeams = [...allTeams, newTeam];
     return newTeam;
 }
@@ -35,7 +27,6 @@ export function renameTeamById(teamId, newName) {
     allTeams = allTeams.map((team) =>
         team.id === teamId ? { ...team, name: newName } : team
     );
-
     return allTeams.find((team) => team.id === teamId);
 }
 
@@ -43,7 +34,6 @@ export function updateTeamIcon(teamId, iconUrl) {
     allTeams = allTeams.map((team) =>
         team.id === teamId ? { ...team, icon: iconUrl } : team
     );
-
     return allTeams.find((team) => team.id === teamId);
 }
 
@@ -60,7 +50,6 @@ export function getMembersByTeam(teamId) {
 export function inviteMemberToTeam(teamId, email) {
     const baseName = email.split('@')[0];
     const userId = `user-${Date.now()}`;
-
     const newMember = {
         id: `m-${Date.now()}`,
         userId,
@@ -70,7 +59,6 @@ export function inviteMemberToTeam(teamId, email) {
         role: 'member',
         avatar: `https://picsum.photos/seed/${baseName}/80/80`,
     };
-
     allMembers = [...allMembers, newMember];
     return allMembers.filter((member) => member.teamId === teamId);
 }
@@ -79,7 +67,6 @@ export function kickMemberFromTeam(teamId, memberId) {
     allMembers = allMembers.filter(
         (member) => !(member.teamId === teamId && member.id === memberId)
     );
-
     return allMembers.filter((member) => member.teamId === teamId);
 }
 
@@ -89,8 +76,19 @@ export function getStatsByTeam(teamId) {
     const activeTasks = teamTasks.filter((task) => task.columnId !== 'done').length;
     const doneTasks = teamTasks.filter((task) => task.columnId === 'done').length;
     const petals = teamTasks.reduce((sum, task) => sum + getEarnedPetals(task), 0);
-
     return { memberCount, activeTasks, doneTasks, petals };
+}
+
+export function getMemberPetalsByTeam(teamId) {
+    const teamTasks = tasks.filter((task) => task.teamId === teamId && task.columnId === 'done');
+    const petalMap = {};
+    for (const task of teamTasks) {
+        if (task.assigneeUserId) {
+            const earned = getEarnedPetals(task);
+            petalMap[task.assigneeUserId] = (petalMap[task.assigneeUserId] ?? 0) + earned;
+        }
+    }
+    return petalMap;
 }
 
 export function getColumnsByTeam(teamId) {
@@ -106,7 +104,6 @@ export function saveTaskMove(teamId, tasksInNewOrder) {
         ...tasks.filter((task) => task.teamId !== teamId),
         ...tasksInNewOrder.map(normalizeTask),
     ];
-
     return tasksInNewOrder;
 }
 

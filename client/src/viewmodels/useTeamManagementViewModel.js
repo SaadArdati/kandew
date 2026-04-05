@@ -8,6 +8,7 @@ import {
     renameTeamById,
     updateTeamIcon,
     getStatsByTeam,
+    getMemberPetalsByTeam,
 } from '../repositories/taskRepository';
 
 export default function useTeamManagementViewModel(teamId) {
@@ -15,8 +16,10 @@ export default function useTeamManagementViewModel(teamId) {
     const [members, setMembers] = useState(() => getMembersByTeam(teamId));
     const [inviteEmail, setInviteEmail] = useState('');
     const [newName, setNewName] = useState(team?.name ?? '');
+    const [petalValue, setPetalValue] = useState(1.00);
 
     const stats = getStatsByTeam(teamId);
+    const memberPetals = getMemberPetalsByTeam(teamId);
 
     function inviteMember() {
         if (!inviteEmail.trim()) return;
@@ -59,5 +62,8 @@ export default function useTeamManagementViewModel(teamId) {
         renameTeam,
         changeIcon,
         stats,
+        petalValue,
+        setPetalValue,
+        memberPetals,
     };
 }
