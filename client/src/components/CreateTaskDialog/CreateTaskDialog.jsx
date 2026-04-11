@@ -29,13 +29,31 @@ function getNowInputValue() {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function formatDateTimeLocal(value) {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export default function CreateTaskDialog({
     open,
     onClose,
     onCreate,
+    onUpdate,
     members,
     activeTeamId,
     firstColumnId,
+    mode = 'create',
+    initialTask = null,
 }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -45,15 +63,25 @@ export default function CreateTaskDialog({
     const [dueDate, setDueDate] = useState(getDefaultDueDateTime());
     const [errors, setErrors] = useState({});
     const [prevOpen, setPrevOpen] = useState(false);
+    const isEditMode = mode === 'edit';
 
-    // Reset form when dialog transitions from closed to open
     if (open && !prevOpen) {
-        setTitle('');
-        setDescription('');
-        setAssigneeUserId(members[0]?.userId ?? '');
-        setPriority('medium');
-        setMaxPetals(5);
-        setDueDate(getDefaultDueDateTime());
+        if (isEditMode && initialTask) {
+            setTitle(initialTask.title ?? '');
+            setDescription(initialTask.description ?? '');
+            setAssigneeUserId(initialTask.assigneeUserId ?? '');
+            setPriority(initialTask.priority ?? 'medium');
+            setMaxPetals(Number(initialTask.maxPetals ?? 5));
+            setDueDate(formatDateTimeLocal(initialTask.dueDate) || getDefaultDueDateTime());
+        } else {
+            setTitle('');
+            setDescription('');
+            setAssigneeUserId(members[0]?.userId ?? '');
+            setPriority('medium');
+            setMaxPetals(5);
+            setDueDate(getDefaultDueDateTime());
+        }
+
         setErrors({});
     }
     if (open !== prevOpen) {
@@ -101,7 +129,7 @@ export default function CreateTaskDialog({
 
         if (!dueDate) {
             newErrors.dueDate = 'Please choose a due date.';
-        } else if (new Date(dueDate).getTime() <= new Date().getTime()) {
+        } else if (!isEditMode && new Date(dueDate).getTime() <= new Date().getTime()) {
             newErrors.dueDate = 'Due date must be in the future.';
         }
 
@@ -119,7 +147,7 @@ export default function CreateTaskDialog({
 
         const selectedMember = members.find((member) => member.userId === assigneeUserId);
 
-        onCreate({
+        const payload = {
             title: title.trim(),
             description: description.trim(),
             assigneeUserId,
@@ -127,9 +155,15 @@ export default function CreateTaskDialog({
             priority,
             dueDate,
             maxPetals: Number(maxPetals),
-            teamId: activeTeamId,
-            columnId: firstColumnId,
-        });
+            teamId: initialTask?.teamId || activeTeamId,
+            columnId: initialTask?.columnId || firstColumnId,
+        };
+
+        if (isEditMode) {
+            onUpdate?.(payload);
+        } else {
+            onCreate?.(payload);
+        }
     }
 
     return (
@@ -155,8 +189,12 @@ export default function CreateTaskDialog({
                 </button>
 
                 <div className="create-task-header">
-                    <h2 id="create-task-title">Create Task</h2>
-                    <p>Add a new task and choose how many petals it starts with.</p>
+                    <h2 id="create-task-title">{isEditMode ? 'Edit Task' : 'Create Task'}</h2>
+                    <p>
+                        {isEditMode
+                            ? 'Update the task details below.'
+                            : 'Add a new task and choose how many petals it starts with.'}
+                    </p>
                 </div>
 
                 <form className="create-task-form" onSubmit={handleSubmit}>
@@ -251,7 +289,7 @@ export default function CreateTaskDialog({
                         <input
                             id="task-due-date"
                             type="datetime-local"
-                            min={getNowInputValue()}
+                            min={isEditMode ? undefined : getNowInputValue()}
                             value={dueDate}
                             onChange={(event) => {
                                 setDueDate(event.target.value);
@@ -263,7 +301,7 @@ export default function CreateTaskDialog({
 
                     <div className="create-task-actions">
                         <button type="submit" className="create-task-submit">
-                            Create
+                            {isEditMode ? 'Save Changes' : 'Create'}
                         </button>
                     </div>
                 </form>

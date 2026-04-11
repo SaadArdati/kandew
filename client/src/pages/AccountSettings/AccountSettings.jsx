@@ -120,6 +120,7 @@ export default function AccountSettings() {
                                 type="file"
                                 accept="image/*"
                                 onChange={handleAvatarChange}
+                                style={{ cursor: 'pointer' }}
                             />
                         </div>
 
@@ -184,6 +185,7 @@ export default function AccountSettings() {
                                 id="team-filter"
                                 value={selectedTeamFilter}
                                 onChange={(event) => setSelectedTeamFilter(event.target.value)}
+                                style={{ cursor: 'pointer' }}
                             >
                                 <option value="all">All Teams</option>
                                 {teams.map((team) => (

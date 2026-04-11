@@ -1,6 +1,6 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {addTask, getColumnsByTeam, getTasksByTeam, saveTaskMove,} from '../repositories/taskRepository';
-import {normalizeTask, transitionTaskForColumn} from '../utils/petalUtils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { addTask, getColumnsByTeam, getTasksByTeam, saveTaskMove, updateTask } from '../repositories/taskRepository';
+import { normalizeTask, transitionTaskForColumn } from '../utils/petalUtils';
 
 export default function useBoardViewModel(activeTeamId) {
     const [tasks, setTasks] = useState(() => getTasksByTeam(activeTeamId));
@@ -46,8 +46,8 @@ export default function useBoardViewModel(activeTeamId) {
         const prevByCol = {};
         const nextByCol = {};
         for (const col of columns) {
-            prevByCol[col.id] = {count: 0, taskIds: new Set()};
-            nextByCol[col.id] = {count: 0, taskIds: new Set()};
+            prevByCol[col.id] = { count: 0, taskIds: new Set() };
+            nextByCol[col.id] = { count: 0, taskIds: new Set() };
         }
         for (const t of prevTasks) {
             if (prevByCol[t.columnId]) {
@@ -205,6 +205,7 @@ export default function useBoardViewModel(activeTeamId) {
             dueDate: taskData.dueDate,
             maxPetals: taskData.maxPetals,
             createdAt: new Date().toISOString(),
+            creatorUserId: taskData.creatorUserId ?? null,
             reviewEnteredAt: null,
             frozenPetalsAtReview: null,
             completedAt: null,
@@ -213,6 +214,23 @@ export default function useBoardViewModel(activeTeamId) {
 
         addTask(newTask);
         setTasks((previousTasks) => [...previousTasks, newTask]);
+    }
+
+    function handleUpdateTask(taskId, updates) {
+        setTasks((previousTasks) =>
+            previousTasks.map((task) => {
+                if (task.id !== taskId) {
+                    return task;
+                }
+
+                return normalizeTask({
+                    ...task,
+                    ...updates,
+                });
+            })
+        );
+
+        return updateTask(taskId, updates);
     }
 
     return {
@@ -231,5 +249,6 @@ export default function useBoardViewModel(activeTeamId) {
         handleDragEnd,
         handleMoveTask,
         handleCreateTask,
+        handleUpdateTask,
     };
 }

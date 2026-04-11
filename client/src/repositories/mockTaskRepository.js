@@ -113,6 +113,25 @@ export function addTask(task) {
     return normalizedTask;
 }
 
+export function updateTask(taskId, updates) {
+    let updatedTask = null;
+
+    tasks = tasks.map((task) => {
+        if (task.id !== taskId) {
+            return task;
+        }
+
+        updatedTask = normalizeTask({
+            ...task,
+            ...updates,
+        });
+
+        return updatedTask;
+    });
+
+    return updatedTask;
+}
+
 export function deleteTask(taskId) {
     tasks = tasks.filter((task) => task.id !== taskId);
 }

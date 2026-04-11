@@ -23,10 +23,38 @@
     padding: 1.5rem;
 }
 
-.task-dialog-close {
+.task-dialog-top-actions {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.task-dialog-icon-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-on-surface);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.task-dialog-icon-btn:hover {
+    background: color-mix(in srgb, var(--color-on-surface) 10%, transparent);
+}
+
+.task-dialog-icon-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.task-dialog-close {
     width: 2.25rem;
     height: 2.25rem;
     border: none;
@@ -35,6 +63,7 @@
     color: var(--color-on-surface);
     font-size: 1.5rem;
     line-height: 1;
+    cursor: pointer;
     transition: background 0.15s ease;
 }
 
@@ -52,7 +81,7 @@
     flex-direction: column;
     gap: 0.6rem;
     margin-bottom: 1.25rem;
-    padding-right: 2.5rem;
+    padding-right: 5.5rem;
 }
 
 .task-dialog-priority {

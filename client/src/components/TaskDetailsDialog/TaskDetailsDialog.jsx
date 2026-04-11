@@ -7,7 +7,15 @@ import {
     getTaskPetals,
 } from '../../utils/petalUtils';
 
-export default function TaskDetailsDialog({ task, onClose, currentTime, columns = [], onMoveTask }) {
+export default function TaskDetailsDialog({
+    task,
+    onClose,
+    currentTime,
+    columns = [],
+    onMoveTask,
+    canEdit = false,
+    onEdit,
+}) {
     useEffect(() => {
         if (!task) return;
 
@@ -34,8 +42,8 @@ export default function TaskDetailsDialog({ task, onClose, currentTime, columns 
         reviewColumns.includes(task.columnId)
             ? 'Petals frozen in Review'
             : doneColumns.includes(task.columnId)
-              ? 'Petals earned on completion'
-              : 'Live petal value';
+                ? 'Petals earned on completion'
+                : 'Live petal value';
 
     return (
         <div
@@ -50,13 +58,28 @@ export default function TaskDetailsDialog({ task, onClose, currentTime, columns 
                 aria-modal="true"
                 aria-labelledby="task-dialog-title"
             >
-                <button
-                    className="task-dialog-close"
-                    onClick={onClose}
-                    aria-label="Close task details"
-                >
-                    ×
-                </button>
+                <div className="task-dialog-top-actions">
+                    {canEdit && (
+                        <button
+                            type="button"
+                            className="task-dialog-icon-btn"
+                            onClick={onEdit}
+                            aria-label="Edit task"
+                            title="Edit task"
+                        >
+                            ✎
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        className="task-dialog-close"
+                        onClick={onClose}
+                        aria-label="Close task details"
+                    >
+                        ×
+                    </button>
+                </div>
 
                 <div className="task-dialog-header">
                     <span className={`task-dialog-priority priority-${task.priority}`}>

@@ -1,5 +1,5 @@
-import {useEffect, useMemo, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import TeamPanel from '../../components/TeamPanel/TeamPanel';
 import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
@@ -7,16 +7,18 @@ import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDia
 import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog';
 import useTeamViewModel from '../../viewmodels/useTeamViewModel';
 import useBoardViewModel from '../../viewmodels/useBoardViewModel';
-import {currentUser} from '../../data/mockData';
-import {getMembersByTeam} from '../../repositories/taskRepository';
+import { currentUser } from '../../data/mockData';
+import { getMembersByTeam } from '../../repositories/taskRepository';
 
 export default function Home() {
     const navigate = useNavigate();
-    const {teams, activeTeamId, activeTeamName, selectTeam} = useTeamViewModel();
+    const { teams, activeTeamId, activeTeamName, selectTeam } = useTeamViewModel();
     const board = useBoardViewModel(activeTeamId);
 
     const [selectedTask, setSelectedTask] = useState(null);
+    const [taskBeingEdited, setTaskBeingEdited] = useState(null);
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+    const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
     const [now, setNow] = useState(() => Date.now());
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMembers, setSelectedMembers] = useState([]);
@@ -54,6 +56,13 @@ export default function Home() {
         }));
     }, [board.tasksByColumn, searchQuery, selectedMembers, priorityFilter]);
 
+    const canEditSelectedTask = useMemo(() => {
+        if (!selectedTask || !activeTeam) return false;
+
+        const taskCreatorId = selectedTask.creatorUserId ?? activeTeam.creatorUserId;
+        return taskCreatorId === currentUser.id;
+    }, [selectedTask, activeTeam]);
+
     function toggleMember(userId) {
         setSelectedMembers((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]);
     }
@@ -80,8 +89,32 @@ export default function Home() {
     }
 
     function handleCreateTask(taskData) {
-        board.handleCreateTask(taskData);
+        board.handleCreateTask({
+            ...taskData,
+            creatorUserId: currentUser.id,
+        });
         setIsCreateTaskOpen(false);
+    }
+
+    function handleOpenEditTask() {
+        if (!selectedTask) return;
+
+        setTaskBeingEdited(selectedTask);
+        setSelectedTask(null);
+        setIsEditTaskOpen(true);
+    }
+
+    function handleCloseEditTask() {
+        setIsEditTaskOpen(false);
+        setTaskBeingEdited(null);
+    }
+
+    function handleUpdateTask(updatedValues) {
+        if (!taskBeingEdited) return;
+
+        board.handleUpdateTask(taskBeingEdited.id, updatedValues);
+        setIsEditTaskOpen(false);
+        setTaskBeingEdited(null);
     }
 
     return (<>
@@ -127,6 +160,8 @@ export default function Home() {
             onClose={handleCloseTask}
             currentTime={now}
             columns={board.columns}
+            canEdit={canEditSelectedTask}
+            onEdit={handleOpenEditTask}
             onMoveTask={(targetColumnId) => {
                 if (!selectedTask) return;
                 board.handleMoveTask(selectedTask.id, targetColumnId);
@@ -135,12 +170,14 @@ export default function Home() {
         />
 
         <CreateTaskDialog
-            open={isCreateTaskOpen}
-            onClose={handleCloseCreateTask}
-            onCreate={handleCreateTask}
+            open={isEditTaskOpen}
+            onClose={handleCloseEditTask}
+            onUpdate={handleUpdateTask}
             members={teamMembers}
             activeTeamId={activeTeamId}
             firstColumnId={board.firstColumnId}
+            mode="edit"
+            initialTask={taskBeingEdited}
         />
     </>);
 }
