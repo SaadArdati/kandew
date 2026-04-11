@@ -48,15 +48,9 @@ export function normalizeTask(task) {
         maxPetals,
         createdAt: task.createdAt ?? new Date().toISOString(),
         reviewEnteredAt: task.reviewEnteredAt ?? null,
-        frozenPetalsAtReview:
-            task.frozenPetalsAtReview == null
-                ? null
-                : clamp(Number(task.frozenPetalsAtReview), 0, maxPetals),
+        frozenPetalsAtReview: task.frozenPetalsAtReview == null ? null : clamp(Number(task.frozenPetalsAtReview), 0, maxPetals),
         completedAt: task.completedAt ?? null,
-        earnedPetals:
-            task.earnedPetals == null
-                ? null
-                : clamp(Number(task.earnedPetals), 0, maxPetals),
+        earnedPetals: task.earnedPetals == null ? null : clamp(Number(task.earnedPetals), 0, maxPetals),
     };
 }
 
@@ -105,10 +99,7 @@ export function getTaskPetals(task, referenceTime = new Date()) {
             return clamp(normalizedTask.frozenPetalsAtReview, 0, maxPetals);
         }
 
-        return getCurrentActivePetals(
-            normalizedTask,
-            normalizedTask.reviewEnteredAt ?? referenceTime
-        );
+        return getCurrentActivePetals(normalizedTask, normalizedTask.reviewEnteredAt ?? referenceTime);
     }
 
     if (normalizedTask.columnId === DONE_COLUMN_ID) {
@@ -121,6 +112,11 @@ export function getTaskPetals(task, referenceTime = new Date()) {
         }
 
         return 0;
+    }
+
+    // If petals were frozen (e.g. moved back from review/done), use that value
+    if (normalizedTask.frozenPetalsAtReview != null) {
+        return clamp(normalizedTask.frozenPetalsAtReview, 0, maxPetals);
     }
 
     return getCurrentActivePetals(normalizedTask, referenceTime);
@@ -152,34 +148,21 @@ export function transitionTaskForColumn(task, targetColumnId, referenceTime = ne
     }
 
     if (targetColumnId === DONE_COLUMN_ID) {
-        const earnedPetals =
-            normalizedTask.columnId === REVIEW_COLUMN_ID
-                ? clamp(
-                      Number(
-                          normalizedTask.frozenPetalsAtReview ??
-                              getCurrentActivePetals(
-                                  normalizedTask,
-                                  normalizedTask.reviewEnteredAt ?? referenceTime
-                              )
-                      ),
-                      0,
-                      normalizedTask.maxPetals
-                  )
-                : getCurrentActivePetals(normalizedTask, referenceTime);
+        const earnedPetals = normalizedTask.columnId === REVIEW_COLUMN_ID ? clamp(Number(normalizedTask.frozenPetalsAtReview ?? getCurrentActivePetals(normalizedTask, normalizedTask.reviewEnteredAt ?? referenceTime)), 0, normalizedTask.maxPetals) : getCurrentActivePetals(normalizedTask, referenceTime);
 
         return {
-            ...normalizedTask,
-            columnId: targetColumnId,
-            completedAt: nowIso,
-            earnedPetals,
+            ...normalizedTask, columnId: targetColumnId, completedAt: nowIso, earnedPetals,
         };
     }
 
+    // Moving backward — preserve petals at their current value
+    // so moving a card back doesn't punish the user
+    const currentPetals = getTaskPetals(normalizedTask, referenceTime);
     return {
         ...normalizedTask,
         columnId: targetColumnId,
         reviewEnteredAt: null,
-        frozenPetalsAtReview: null,
+        frozenPetalsAtReview: currentPetals > 0 ? currentPetals : null,
         completedAt: null,
         earnedPetals: null,
     };
@@ -201,10 +184,7 @@ export function formatTaskDueDate(dateValue) {
 export function isDueSoon(task, referenceTime = new Date()) {
     const normalizedTask = normalizeTask(task);
 
-    if (
-        normalizedTask.columnId === DONE_COLUMN_ID ||
-        normalizedTask.columnId === REVIEW_COLUMN_ID
-    ) {
+    if (normalizedTask.columnId === DONE_COLUMN_ID || normalizedTask.columnId === REVIEW_COLUMN_ID) {
         return false;
     }
 
@@ -223,7 +203,7 @@ export function buildPetalSlots(task, referenceTime = new Date()) {
     const maxPetals = getTaskMaxPetals(task);
     const currentPetals = getTaskPetals(task, referenceTime);
 
-    return Array.from({ length: maxPetals }, (_, index) => ({
+    return Array.from({length: maxPetals}, (_, index) => ({
         key: `${task.id}-petal-${index}`,
         filled: index < currentPetals,
         label: index < currentPetals ? '🌸' : EMPTY_PETAL,

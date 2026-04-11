@@ -7,7 +7,7 @@ import {
     getTaskPetals,
 } from '../../utils/petalUtils';
 
-export default function TaskDetailsDialog({ task, onClose, currentTime }) {
+export default function TaskDetailsDialog({ task, onClose, currentTime, columns = [], onMoveTask }) {
     useEffect(() => {
         if (!task) return;
 
@@ -105,6 +105,29 @@ export default function TaskDetailsDialog({ task, onClose, currentTime }) {
                         <strong>{formattedDueDate || '—'}</strong>
                     </div>
                 </div>
+
+                {columns.length > 0 && onMoveTask && (
+                    <div className="task-dialog-section task-dialog-move">
+                        <h3>Move to</h3>
+                        <div className="task-dialog-move-row">
+                            {columns.map((col) => {
+                                const isCurrent = col.id === task.columnId;
+                                return (
+                                    <button
+                                        key={col.id}
+                                        type="button"
+                                        className={`task-dialog-move-btn ${isCurrent ? 'current' : ''}`}
+                                        disabled={isCurrent}
+                                        onClick={() => onMoveTask(col.id)}
+                                        aria-current={isCurrent ? 'true' : undefined}
+                                    >
+                                        {col.title}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 <div className="task-dialog-footer">
                     {task.columnId === 'review' && task.reviewEnteredAt && (

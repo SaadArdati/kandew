@@ -1,0 +1,45 @@
+/*
+ * Easing functions from https://easings.net
+ * by Andrey Sitnik and Ivan Solovev
+ *
+ * Only the easings used in this project are included.
+ * Set --bounce-peak on the element to control the distance.
+ */
+
+/* ── easeOutBounce — drop (peak → 0) ───────────────────── *
+ * Derived from easings.net translateX keyframes, inverted so it starts
+ * at peak and bounces down to rest. Each value = 1 - original.
+ * Original values: 0%, 10.89%, 43.56%, 98.01%, 75.02%, 98.37%, 93.75%, 99.34%, 98.46%, 100%
+ */
+@keyframes easeOutBounce-drop {
+    0% {
+        transform: translateY(calc(var(--bounce-peak) * -1));
+    }
+    12% {
+        transform: translateY(calc(var(--bounce-peak) * -0.8911));
+    }
+    24% {
+        transform: translateY(calc(var(--bounce-peak) * -0.5644));
+    }
+    36% {
+        transform: translateY(calc(var(--bounce-peak) * -0.0199));
+    }
+    54% {
+        transform: translateY(calc(var(--bounce-peak) * -0.2498));
+    }
+    74% {
+        transform: translateY(calc(var(--bounce-peak) * -0.0163));
+    }
+    82% {
+        transform: translateY(calc(var(--bounce-peak) * -0.0625));
+    }
+    92% {
+        transform: translateY(calc(var(--bounce-peak) * -0.0066));
+    }
+    96% {
+        transform: translateY(calc(var(--bounce-peak) * -0.0154));
+    }
+    100% {
+        transform: translateY(0);
+    }
+}

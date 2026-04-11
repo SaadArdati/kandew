@@ -17,7 +17,7 @@
     color: var(--color-on-surface);
     border: 1px solid var(--color-outline);
     border-radius: 18px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 20px 50px color-mix(in srgb, var(--color-on-surface) 18%, transparent);
     padding: 1.25rem 1.25rem 1rem;
 }
 
@@ -29,7 +29,6 @@
     background: transparent;
     color: var(--color-on-surface-variant);
     font-size: 1.6rem;
-    cursor: pointer;
     line-height: 1;
 }
 
@@ -81,7 +80,7 @@
     background: var(--color-surface-container-high);
     color: var(--color-on-surface);
     border: 1px solid var(--color-outline);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 0.8rem 0.9rem;
     font: inherit;
     outline: none;
@@ -114,12 +113,11 @@
 
 .create-task-submit {
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-surface);
     font-weight: 700;
     padding: 0.78rem 1.2rem;
-    cursor: pointer;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 

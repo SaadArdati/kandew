@@ -1,24 +1,31 @@
-/**
- * ViewModel for the kanban board — manages task state, drag-and-drop,
- * and task creation for the currently selected team.
- */
-import { useEffect, useMemo, useState } from 'react';
-import {
-    addTask,
-    getColumnsByTeam,
-    getTasksByTeam,
-    saveTaskMove,
-} from '../repositories/taskRepository';
-import { normalizeTask, transitionTaskForColumn } from '../utils/petalUtils';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {addTask, getColumnsByTeam, getTasksByTeam, saveTaskMove,} from '../repositories/taskRepository';
+import {normalizeTask, transitionTaskForColumn} from '../utils/petalUtils';
 
 export default function useBoardViewModel(activeTeamId) {
     const [tasks, setTasks] = useState(() => getTasksByTeam(activeTeamId));
     const [draggedTaskId, setDraggedTaskId] = useState(null);
     const [dragOverCol, setDragOverCol] = useState(null);
     const [dropIndex, setDropIndex] = useState(null);
+    const [celebratingCols, setCelebratingCols] = useState(new Set());
+    const [victoryTaskIds, setVictoryTaskIds] = useState(new Set());
+    const celebrationTimers = useRef([]);
 
-    useEffect(() => {
+    // Reset all state when team changes (adjusting state during render)
+    const [trackedTeamId, setTrackedTeamId] = useState(activeTeamId);
+    if (trackedTeamId !== activeTeamId) {
+        setTrackedTeamId(activeTeamId);
         setTasks(getTasksByTeam(activeTeamId));
+        setCelebratingCols(new Set());
+        setVictoryTaskIds(new Set());
+    }
+
+    // Clean up celebration timers when team changes
+    useEffect(() => {
+        return () => {
+            celebrationTimers.current.forEach(clearTimeout);
+            celebrationTimers.current = [];
+        };
     }, [activeTeamId]);
 
     const columns = useMemo(() => getColumnsByTeam(activeTeamId), [activeTeamId]);
@@ -30,6 +37,66 @@ export default function useBoardViewModel(activeTeamId) {
             tasks: tasks.filter((task) => task.columnId === column.id),
         }));
     }, [tasks, columns]);
+
+    const checkCelebrations = useCallback((prevTasks, nextTasks) => {
+        celebrationTimers.current.forEach(clearTimeout);
+        celebrationTimers.current = [];
+
+        // Build column counts for before and after
+        const prevByCol = {};
+        const nextByCol = {};
+        for (const col of columns) {
+            prevByCol[col.id] = {count: 0, taskIds: new Set()};
+            nextByCol[col.id] = {count: 0, taskIds: new Set()};
+        }
+        for (const t of prevTasks) {
+            if (prevByCol[t.columnId]) {
+                prevByCol[t.columnId].count += 1;
+                prevByCol[t.columnId].taskIds.add(t.id);
+            }
+        }
+        for (const t of nextTasks) {
+            if (nextByCol[t.columnId]) {
+                nextByCol[t.columnId].count += 1;
+                nextByCol[t.columnId].taskIds.add(t.id);
+            }
+        }
+
+        // Columns that became empty
+        const emptied = new Set();
+        for (const col of columns) {
+            if (prevByCol[col.id].count > 0 && nextByCol[col.id].count === 0) {
+                emptied.add(col.id);
+            }
+        }
+        if (emptied.size > 0) {
+            setCelebratingCols(emptied);
+            celebrationTimers.current.push(
+                setTimeout(() => setCelebratingCols(new Set()), 2500)
+            );
+        }
+
+        // New arrivals in the last column
+        const lastCol = columns[columns.length - 1];
+        if (lastCol) {
+            const prevIds = prevByCol[lastCol.id].taskIds;
+            const newArrivals = new Set();
+            for (const id of nextByCol[lastCol.id].taskIds) {
+                if (!prevIds.has(id)) newArrivals.add(id);
+            }
+            if (newArrivals.size > 0) {
+                setVictoryTaskIds(newArrivals);
+                celebrationTimers.current.push(
+                    setTimeout(() => setVictoryTaskIds(new Set()), 4000)
+                );
+            }
+        }
+    }, [columns]);
+
+    // Clean up celebration timers on unmount
+    useEffect(() => {
+        return () => celebrationTimers.current.forEach(clearTimeout);
+    }, []);
 
     function handleDragStart(event, taskId) {
         setDraggedTaskId(taskId);
@@ -71,6 +138,8 @@ export default function useBoardViewModel(activeTeamId) {
         event.preventDefault();
         if (!draggedTaskId) return;
 
+        const prevTasks = tasks;
+
         setTasks((previousTasks) => {
             const draggedTask = previousTasks.find((task) => task.id === draggedTaskId);
             if (!draggedTask) return previousTasks;
@@ -90,6 +159,7 @@ export default function useBoardViewModel(activeTeamId) {
 
             const newTasks = [...otherTasks, ...targetTasks].map(normalizeTask);
             saveTaskMove(activeTeamId, newTasks);
+            checkCelebrations(prevTasks, newTasks);
             return newTasks;
         });
 
@@ -102,6 +172,24 @@ export default function useBoardViewModel(activeTeamId) {
         setDraggedTaskId(null);
         setDragOverCol(null);
         setDropIndex(null);
+    }
+
+    function handleMoveTask(taskId, targetColumnId) {
+        const prevTasks = tasks;
+
+        setTasks((previousTasks) => {
+            const task = previousTasks.find((t) => t.id === taskId);
+            if (!task || task.columnId === targetColumnId) return previousTasks;
+
+            const movedTask = transitionTaskForColumn(task, targetColumnId, new Date());
+            const newTasks = previousTasks.map((t) =>
+                t.id === taskId ? movedTask : t
+            ).map(normalizeTask);
+
+            saveTaskMove(activeTeamId, newTasks);
+            checkCelebrations(prevTasks, newTasks);
+            return newTasks;
+        });
     }
 
     function handleCreateTask(taskData) {
@@ -128,16 +216,20 @@ export default function useBoardViewModel(activeTeamId) {
     }
 
     return {
+        columns,
         tasksByColumn,
         firstColumnId,
         draggedTaskId,
         dragOverCol,
         dropIndex,
+        celebratingCols,
+        victoryTaskIds,
         handleDragStart,
         handleColumnDragOver,
         handleDragLeave,
         handleDrop,
         handleDragEnd,
+        handleMoveTask,
         handleCreateTask,
     };
 }

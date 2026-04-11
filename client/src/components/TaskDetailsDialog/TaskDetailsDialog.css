@@ -35,7 +35,6 @@
     color: var(--color-on-surface);
     font-size: 1.5rem;
     line-height: 1;
-    cursor: pointer;
     transition: background 0.15s ease;
 }
 
@@ -164,7 +163,45 @@
     color: var(--color-on-surface-variant);
     font-size: 0.92rem;
     line-height: 1.4;
+}
+
+/* Move to column buttons */
+.task-dialog-move-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.task-dialog-move-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 10px;
+    background: var(--color-surface-container);
+    color: var(--color-on-surface);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.task-dialog-move-btn:hover:not(:disabled) {
+    background: var(--color-surface-container-high);
+    border-color: var(--color-primary);
+}
+
+.task-dialog-move-btn:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+.task-dialog-move-btn.current {
+    background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface-container));
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    cursor: default;
 }
 
 @media (max-width: 640px) {

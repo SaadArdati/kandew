@@ -1,10 +1,13 @@
 .home-layout {
     display: flex;
     height: 100%;
+    min-height: 0;
 }
 
 @media (max-width: 768px) {
     .home-layout {
         flex-direction: column;
+        height: auto;
+        min-height: 100%;
     }
 }

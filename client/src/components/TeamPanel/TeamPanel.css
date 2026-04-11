@@ -66,7 +66,7 @@
     height: 48px;
     border-radius: 50%;
     overflow: hidden;
-    cursor: pointer;
+
     transition: border-radius 0.15s ease, border-color 0.15s ease, background 0.15s ease;
     background: var(--color-surface-container-high);
     border: 3px solid transparent;
@@ -94,6 +94,26 @@
 
 .profile-icon-btn {
     text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-icon-btn.petal-received {
+    --bounce-peak: 18px;
+    animation:
+        petal-rise 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+        easeOutBounce-drop 0.9s linear 0.3s forwards;
+    box-shadow: 0 0 12px 4px color-mix(in srgb, var(--color-petal) 45%, transparent);
+}
+
+@keyframes petal-rise {
+    from { transform: translateY(0); }
+    to   { transform: translateY(calc(var(--bounce-peak) * -1)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-icon-btn.petal-received {
+        animation: none;
+    }
 }
 
 .create-team-btn {

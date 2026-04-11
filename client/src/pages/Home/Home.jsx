@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {useEffect, useMemo, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import './Home.css';
 import TeamPanel from '../../components/TeamPanel/TeamPanel';
 import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
@@ -7,12 +7,12 @@ import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDia
 import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog';
 import useTeamViewModel from '../../viewmodels/useTeamViewModel';
 import useBoardViewModel from '../../viewmodels/useBoardViewModel';
-import { currentUser } from '../../data/mockData';
-import { getMembersByTeam } from '../../repositories/taskRepository';
+import {currentUser} from '../../data/mockData';
+import {getMembersByTeam} from '../../repositories/taskRepository';
 
 export default function Home() {
     const navigate = useNavigate();
-    const { teams, activeTeamId, activeTeamName, selectTeam } = useTeamViewModel();
+    const {teams, activeTeamId, activeTeamName, selectTeam} = useTeamViewModel();
     const board = useBoardViewModel(activeTeamId);
 
     const [selectedTask, setSelectedTask] = useState(null);
@@ -30,37 +30,24 @@ export default function Home() {
         return () => window.clearInterval(intervalId);
     }, []);
 
-    const activeTeam = useMemo(
-        () => teams.find((team) => team.id === activeTeamId) ?? null,
-        [teams, activeTeamId]
-    );
+    const activeTeam = useMemo(() => teams.find((team) => team.id === activeTeamId) ?? null, [teams, activeTeamId]);
 
-    const canManageActiveTeam =
-        activeTeam !== null && activeTeam.creatorUserId === currentUser.id;
+    const canManageActiveTeam = activeTeam !== null && activeTeam.creatorUserId === currentUser.id;
 
     const canCreateTasks = canManageActiveTeam;
 
-    const teamMembers = useMemo(
-        () => getMembersByTeam(activeTeamId),
-        [activeTeamId]
-    );
+    const teamMembers = useMemo(() => getMembersByTeam(activeTeamId), [activeTeamId]);
 
     // Filter tasksByColumn based on search, member selection, and priority
     const filteredTasksByColumn = useMemo(() => {
         return board.tasksByColumn.map((col) => ({
-            ...col,
-            tasks: col.tasks.filter((task) => {
+            ...col, tasks: col.tasks.filter((task) => {
                 const q = searchQuery.toLowerCase();
-                const matchesSearch = !searchQuery ||
-                    task.title.toLowerCase().includes(q) ||
-                    task.description.toLowerCase().includes(q) ||
-                    task.assignee.toLowerCase().includes(q);
+                const matchesSearch = !searchQuery || task.title.toLowerCase().includes(q) || task.description.toLowerCase().includes(q) || task.assignee.toLowerCase().includes(q);
 
-                const matchesMember = selectedMembers.length === 0 ||
-                    selectedMembers.includes(task.assigneeUserId);
+                const matchesMember = selectedMembers.length === 0 || selectedMembers.includes(task.assigneeUserId);
 
-                const matchesPriority = priorityFilter === 'all' ||
-                    task.priority === priorityFilter;
+                const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
 
                 return matchesSearch && matchesMember && matchesPriority;
             }),
@@ -68,11 +55,7 @@ export default function Home() {
     }, [board.tasksByColumn, searchQuery, selectedMembers, priorityFilter]);
 
     function toggleMember(userId) {
-        setSelectedMembers((prev) =>
-            prev.includes(userId)
-                ? prev.filter((id) => id !== userId)
-                : [...prev, userId]
-        );
+        setSelectedMembers((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]);
     }
 
     function handleOpenTask(task) {
@@ -101,57 +84,63 @@ export default function Home() {
         setIsCreateTaskOpen(false);
     }
 
-    return (
-        <>
-            <div className="home-layout">
-                <TeamPanel
-                    teams={teams}
-                    activeTeam={activeTeamId}
-                    onSelectTeam={selectTeam}
-                    profile={currentUser}
-                />
+    return (<>
+        <div className="home-layout">
+            <TeamPanel
+                teams={teams}
+                activeTeam={activeTeamId}
+                onSelectTeam={selectTeam}
+                profile={currentUser}
+            />
 
-                <KanbanBoard
-                    teamName={activeTeamName}
-                    tasksByColumn={filteredTasksByColumn}
-                    draggedTaskId={board.draggedTaskId}
-                    dragOverCol={board.dragOverCol}
-                    dropIndex={board.dropIndex}
-                    onDragStart={board.handleDragStart}
-                    onColumnDragOver={board.handleColumnDragOver}
-                    onDragLeave={board.handleDragLeave}
-                    onDrop={board.handleDrop}
-                    onDragEnd={board.handleDragEnd}
-                    onCardClick={handleOpenTask}
-                    canManageTeam={canManageActiveTeam}
-                    onManageTeam={handleManageTeam}
-                    canCreateTasks={canCreateTasks}
-                    onOpenCreateTask={handleOpenCreateTask}
-                    currentTime={now}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    members={teamMembers}
-                    selectedMembers={selectedMembers}
-                    onToggleMember={toggleMember}
-                    priorityFilter={priorityFilter}
-                    onPriorityChange={setPriorityFilter}
-                />
-            </div>
-
-            <TaskDetailsDialog
-                task={selectedTask}
-                onClose={handleCloseTask}
+            <KanbanBoard
+                teamName={activeTeamName}
+                tasksByColumn={filteredTasksByColumn}
+                draggedTaskId={board.draggedTaskId}
+                dragOverCol={board.dragOverCol}
+                dropIndex={board.dropIndex}
+                onDragStart={board.handleDragStart}
+                onColumnDragOver={board.handleColumnDragOver}
+                onDragLeave={board.handleDragLeave}
+                onDrop={board.handleDrop}
+                onDragEnd={board.handleDragEnd}
+                celebratingCols={board.celebratingCols}
+                victoryTaskIds={board.victoryTaskIds}
+                onCardClick={handleOpenTask}
+                canManageTeam={canManageActiveTeam}
+                onManageTeam={handleManageTeam}
+                canCreateTasks={canCreateTasks}
+                onOpenCreateTask={handleOpenCreateTask}
                 currentTime={now}
-            />
-
-            <CreateTaskDialog
-                open={isCreateTaskOpen}
-                onClose={handleCloseCreateTask}
-                onCreate={handleCreateTask}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
                 members={teamMembers}
-                activeTeamId={activeTeamId}
-                firstColumnId={board.firstColumnId}
+                selectedMembers={selectedMembers}
+                onToggleMember={toggleMember}
+                priorityFilter={priorityFilter}
+                onPriorityChange={setPriorityFilter}
             />
-        </>
-    );
+        </div>
+
+        <TaskDetailsDialog
+            task={selectedTask}
+            onClose={handleCloseTask}
+            currentTime={now}
+            columns={board.columns}
+            onMoveTask={(targetColumnId) => {
+                if (!selectedTask) return;
+                board.handleMoveTask(selectedTask.id, targetColumnId);
+                setSelectedTask(null);
+            }}
+        />
+
+        <CreateTaskDialog
+            open={isCreateTaskOpen}
+            onClose={handleCloseCreateTask}
+            onCreate={handleCreateTask}
+            members={teamMembers}
+            activeTeamId={activeTeamId}
+            firstColumnId={board.firstColumnId}
+        />
+    </>);
 }
