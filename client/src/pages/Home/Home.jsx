@@ -85,7 +85,7 @@ export default function Home() {
 
     function handleManageTeam() {
         if (!activeTeam) return;
-        navigate(`/team/${activeTeam.id}/manage`);
+        navigate(`/app/team/${activeTeam.id}/manage`);
     }
 
     function handleOpenCreateTask() {

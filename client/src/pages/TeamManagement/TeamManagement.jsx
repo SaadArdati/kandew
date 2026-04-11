@@ -93,7 +93,7 @@ export default function TeamManagement() {
 
     function handleDelete() {
         deleteTeam();
-        navigate('/');
+        navigate('/app');
     }
 
     function handlePetalValueSave(e) {
@@ -109,7 +109,7 @@ export default function TeamManagement() {
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
             <div className="flex items-center gap-4">
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/app')}
                     className="text-on-surface-variant hover:text-on-surface transition-colors text-sm cursor-pointer"
                 >
                     ← Back

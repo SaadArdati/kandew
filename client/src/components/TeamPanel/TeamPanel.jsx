@@ -30,7 +30,7 @@ export default function TeamPanel({ teams, activeTeam, onSelectTeam, profile }) 
 
     function handleTeamClick(teamId) {
         onSelectTeam(teamId);
-        navigate('/');
+        navigate('/app');
     }
 
     return (
@@ -53,7 +53,7 @@ export default function TeamPanel({ teams, activeTeam, onSelectTeam, profile }) 
 
                     <div className="team-item">
                         <NavLink
-                            to="/team/new"
+                            to="/app/team/new"
                             className="team-icon-btn create-team-btn"
                             title="Create team"
                         >
@@ -85,7 +85,7 @@ export default function TeamPanel({ teams, activeTeam, onSelectTeam, profile }) 
                 <div className="team-panel-divider" />
 
                 <NavLink
-                    to="/account"
+                    to="/app/account"
                     className={({ isActive }) =>
                         `team-icon-btn profile-icon-btn ${isActive ? 'active' : ''}`
                     }

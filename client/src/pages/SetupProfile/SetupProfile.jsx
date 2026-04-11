@@ -26,7 +26,7 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
             avatar: selectedAvatar,
         });
 
-        navigate('/');
+        navigate('/app');
     }
 
     return (

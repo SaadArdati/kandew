@@ -73,7 +73,7 @@ export default function Tasks() {
             <TeamPanel
                 teams={teams}
                 activeTeam={activeTeamId}
-                onSelectTeam={(id) => { selectTeam(id); navigate('/'); }}
+                onSelectTeam={(id) => { selectTeam(id); navigate('/app'); }}
                 profile={currentUser}
             />
 

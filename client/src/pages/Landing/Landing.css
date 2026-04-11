@@ -1,0 +1,59 @@
+.landing {
+    font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+.landing a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+}
+
+.landing-hero-title,
+.landing-features-heading,
+.landing-petals-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+}
+
+.landing-petals-badge {
+    background: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+}
+
+.landing-petals-list li {
+    position: relative;
+    padding-left: 1.25rem;
+}
+
+.landing-petals-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--color-petal);
+}
+
+/* Mobile hero: roses become faded background overlay */
+@media (max-width: 768px) {
+    .landing-hero-visual-mobile {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .landing-hero-visual-mobile img {
+        width: 22rem;
+        opacity: 0.1;
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-hero-visual-mobile img {
+        width: 18rem;
+    }
+}

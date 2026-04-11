@@ -1,0 +1,13 @@
+.not-found {
+    font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+.not-found-code {
+    font-family: 'Instrument Serif', Georgia, serif;
+}
+
+.not-found a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+}

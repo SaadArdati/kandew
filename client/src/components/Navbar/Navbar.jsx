@@ -23,14 +23,14 @@ export default function Navbar({onLogout}) {
         <nav className="bg-surface-container border-b border-outline shadow-sm sticky top-0 z-50">
             <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-14">
-                    <Link to="/" className="text-2xl font-bold text-primary tracking-tight">
+                    <Link to="/app" className="text-2xl font-bold text-primary tracking-tight">
                         🌿 Kandew
                     </Link>
 
                     {/* Desktop links */}
                     <div className="hidden md:flex items-center gap-2">
-                        <NavLink to="/" className={linkClass}>Home</NavLink>
-                        <NavLink to="/tasks" className={linkClass}>Tasks</NavLink>
+                        <NavLink to="/app" className={linkClass}>Home</NavLink>
+                        <NavLink to="/app/tasks" className={linkClass}>Tasks</NavLink>
                         <button
                             onClick={toggleTheme}
                             aria-label="Toggle theme"
@@ -70,8 +70,8 @@ export default function Navbar({onLogout}) {
             {/* Mobile menu */}
             {menuOpen && (
                 <div className="md:hidden px-4 pb-4 flex flex-col gap-1 bg-surface-container border-t border-outline">
-                    <NavLink to="/" className={linkClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
-                    <NavLink to="/tasks" className={linkClass} onClick={() => setMenuOpen(false)}>Tasks</NavLink>
+                    <NavLink to="/app" className={linkClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
+                    <NavLink to="/app/tasks" className={linkClass} onClick={() => setMenuOpen(false)}>Tasks</NavLink>
                     <button
                         onClick={toggleTheme}
                         aria-label="Toggle theme"

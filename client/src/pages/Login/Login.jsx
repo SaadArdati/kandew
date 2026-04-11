@@ -22,7 +22,7 @@ export default function Login({onLogin}) {
             return;
         }
 
-        navigate('/');
+        navigate('/app');
     }
 
     return (

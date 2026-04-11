@@ -11,10 +11,6 @@
     --color-tertiary: #c89038;             /* Amber Sunlight       */
     --color-petal: #f0a8bc;                /* Cherry Blossom       */
     --color-leaf: #4ec48c;                 /* Spring Leaf          */
-}
-
-/* ── Light mode tokens ───────────────────────────────────── */
-:root {
     --color-surface: #f7f5f0;
     --color-surface-container: #ece8e0;
     --color-surface-container-high: #e0ebe4;
@@ -23,7 +19,7 @@
     --color-outline: #b8c8bc;
 }
 
-/* ── Dark mode tokens (same names, different values) ─────── */
+/* ── Dark mode tokens (override @theme defaults) ──────────── */
 :root:where(.dark) {
     --color-surface: #0a120e;
     --color-surface-container: #121e16;

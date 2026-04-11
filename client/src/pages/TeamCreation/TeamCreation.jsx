@@ -29,7 +29,7 @@ export default function TeamCreation() {
         if (name.trim().length < 2) { setNameError('Name must be at least 2 characters.'); return; }
         setNameError('');
         const newTeam = createTeam(name.trim(), finalIcon);
-        navigate(`/team/${newTeam.id}/manage`);
+        navigate(`/app/team/${newTeam.id}/manage`);
     }
 
     return (
@@ -113,7 +113,7 @@ export default function TeamCreation() {
                         <div className="flex gap-3 pt-1">
                             <button
                                 type="button"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/app')}
                                 className="flex-1 border border-outline text-on-surface-variant rounded-xl py-2.5 text-sm font-medium hover:bg-surface-container-high transition-colors"
                             >
                                 Cancel
