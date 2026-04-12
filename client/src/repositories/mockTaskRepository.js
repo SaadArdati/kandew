@@ -1,9 +1,10 @@
-import { teams, columns, initialTasks, initialMembers } from '../data/mockData';
+import { teams, columns, initialTasks, initialMembers, initialComments } from '../data/mockData';
 import { getEarnedPetals, normalizeTask } from '../utils/petalUtils';
 
 let allTeams = [...teams];
 let allMembers = [...initialMembers];
 let tasks = initialTasks.map(normalizeTask);
+let comments = [...initialComments];
 
 export function getTeams() {
     return allTeams;
@@ -113,6 +114,48 @@ export function addTask(task) {
     return normalizedTask;
 }
 
+export function getCommentsByTask(taskId) {
+    return comments
+        .filter((comment) => comment.taskId === taskId)
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
+
+export function addComment(comment) {
+    const newComment = {
+        ...comment,
+        id: comment.id || `comment-${Date.now()}`,
+        createdAt: comment.createdAt || new Date().toISOString(),
+        updatedAt: comment.updatedAt || null,
+    };
+
+    comments = [...comments, newComment];
+    return newComment;
+}
+
+export function updateComment(commentId, updates) {
+    let updatedComment = null;
+
+    comments = comments.map((comment) => {
+        if (comment.id !== commentId) {
+            return comment;
+        }
+
+        updatedComment = {
+            ...comment,
+            ...updates,
+            updatedAt: new Date().toISOString(),
+        };
+
+        return updatedComment;
+    });
+
+    return updatedComment;
+}
+
+export function deleteComment(commentId) {
+    comments = comments.filter((comment) => comment.id !== commentId);
+}
+
 export function updateTask(taskId, updates) {
     let updatedTask = null;
 
@@ -134,4 +177,5 @@ export function updateTask(taskId, updates) {
 
 export function deleteTask(taskId) {
     tasks = tasks.filter((task) => task.id !== taskId);
+    comments = comments.filter((comment) => comment.taskId !== taskId);
 }

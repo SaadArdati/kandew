@@ -200,3 +200,36 @@ export const initialTasks = [
     { id: 'task-8', title: 'Email template library', description: 'Reusable HTML email templates for newsletters and promos.', priority: 'medium', columnId: 'done', teamId: 'team-4', assigneeUserId: 'user-8', assignee: 'Mia Johnson', maxPetals: 5, createdAt: hoursAgo(336), dueDate: hoursAgo(264), reviewEnteredAt: hoursAgo(288), frozenPetalsAtReview: 3, completedAt: hoursAgo(276), earnedPetals: 3 },
     { id: 'task-28', title: 'UTM link generator', description: 'Tool to create and track campaign URLs with UTM parameters.', priority: 'low', columnId: 'done', teamId: 'team-4', assigneeUserId: 'user-2', assignee: 'Marcus Rivera', maxPetals: 3, createdAt: hoursAgo(300), dueDate: hoursAgo(240), reviewEnteredAt: hoursAgo(264), frozenPetalsAtReview: 2, completedAt: hoursAgo(252), earnedPetals: 2 },
 ];
+
+export const initialComments = [
+    {
+        id: 'comment-1',
+        taskId: 'task-1',
+        authorUserId: 'user-8',
+        authorName: 'Karim Salhab',
+        authorAvatar: 'https://picsum.photos/seed/karim/80/80',
+        body: 'Let’s keep the pipeline simple first, then add deployment after tests are stable.',
+        createdAt: '2026-03-22T10:15:00',
+        updatedAt: null,
+    },
+    {
+        id: 'comment-2',
+        taskId: 'task-1',
+        authorUserId: 'user-1',
+        authorName: 'Rami Khoury',
+        authorAvatar: 'https://picsum.photos/seed/rami/80/80',
+        body: 'Agreed. I’ll start with lint + unit tests only.',
+        createdAt: '2026-03-22T11:00:00',
+        updatedAt: null,
+    },
+    {
+        id: 'comment-3',
+        taskId: 'task-2',
+        authorUserId: 'user-2',
+        authorName: 'Nour Haddad',
+        authorAvatar: 'https://picsum.photos/seed/nour/80/80',
+        body: 'I want the card to support both light and dark themes without changing the structure.',
+        createdAt: '2026-03-23T09:30:00',
+        updatedAt: '2026-03-23T10:10:00',
+    },
+];

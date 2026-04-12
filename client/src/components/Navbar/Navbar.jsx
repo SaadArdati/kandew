@@ -7,11 +7,6 @@ export default function Navbar({onLogout}) {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
 
-    function handleLogout() {
-        if (onLogout) onLogout();
-        navigate('/login');
-    }
-
     const linkClass = ({isActive}) => `block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary/15 text-primary' : 'text-on-surface-variant hover:text-on-surface'}`;
 
     return (<nav className="bg-surface-container border-b border-outline/80 sticky top-0 z-50">
@@ -32,12 +27,7 @@ export default function Navbar({onLogout}) {
                     >
                         {dark ? '☀️' : '🌙'}
                     </button>
-                    {onLogout && (<button
-                        onClick={handleLogout}
-                        className="ml-1 px-3 py-1.5 rounded-lg text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors"
-                    >
-                        Log Out
-                    </button>)}
+                    
                 </div>
 
                 {/* Mobile hamburger */}
@@ -84,15 +74,6 @@ export default function Navbar({onLogout}) {
                     {dark ? 'Light mode' : 'Dark mode'}
                 </button>
 
-                {onLogout && (<button
-                    onClick={() => {
-                        handleLogout();
-                        setMenuOpen(false);
-                    }}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors text-left"
-                >
-                    Log Out
-                </button>)}
             </div>
         </>)}
     </nav>);

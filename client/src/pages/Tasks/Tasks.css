@@ -66,6 +66,7 @@
     font-size: 0.8rem;
     outline: none;
     text-transform: capitalize;
+    cursor: pointer;
 }
 
 .tasks-select:focus {

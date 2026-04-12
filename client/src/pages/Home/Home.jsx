@@ -8,7 +8,13 @@ import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog
 import useTeamViewModel from '../../viewmodels/useTeamViewModel';
 import useBoardViewModel from '../../viewmodels/useBoardViewModel';
 import { currentUser } from '../../data/mockData';
-import { getMembersByTeam } from '../../repositories/taskRepository';
+import {
+    addComment,
+    deleteComment,
+    getCommentsByTask,
+    getMembersByTeam,
+    updateComment,
+} from "../../repositories/taskRepository";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -16,6 +22,7 @@ export default function Home() {
     const board = useBoardViewModel(activeTeamId);
 
     const [selectedTask, setSelectedTask] = useState(null);
+    const [taskComments, setTaskComments] = useState([]);
     const [taskBeingEdited, setTaskBeingEdited] = useState(null);
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
     const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
@@ -31,6 +38,15 @@ export default function Home() {
 
         return () => window.clearInterval(intervalId);
     }, []);
+
+    useEffect(() => {
+        if (!selectedTask) {
+            setTaskComments([]);
+            return;
+        }
+
+        setTaskComments(getCommentsByTask(selectedTask.id));
+    }, [selectedTask]);
 
     const activeTeam = useMemo(() => teams.find((team) => team.id === activeTeamId) ?? null, [teams, activeTeamId]);
 
@@ -94,6 +110,38 @@ export default function Home() {
             creatorUserId: currentUser.id,
         });
         setIsCreateTaskOpen(false);
+    }
+
+    function handleAddComment(body) {
+        if (!selectedTask) return;
+
+        const newComment = addComment({
+            taskId: selectedTask.id,
+            authorUserId: currentUser.id,
+            authorName: currentUser.name,
+            authorAvatar: currentUser.avatar,
+            body,
+        });
+
+        setTaskComments((previous) => [...previous, newComment]);
+    }
+
+    function handleUpdateComment(commentId, body) {
+        const updated = updateComment(commentId, { body });
+
+        if (!updated) return;
+
+        setTaskComments((previous) =>
+            previous.map((comment) => (comment.id === commentId ? updated : comment))
+        );
+    }
+
+    function handleDeleteComment(commentId) {
+        deleteComment(commentId);
+
+        setTaskComments((previous) =>
+            previous.filter((comment) => comment.id !== commentId)
+        );
     }
 
     function handleOpenEditTask() {
@@ -167,6 +215,12 @@ export default function Home() {
                 board.handleMoveTask(selectedTask.id, targetColumnId);
                 setSelectedTask(null);
             }}
+            comments={taskComments}
+            currentUser={currentUser}
+            canManageComments={canManageActiveTeam}
+            onAddComment={handleAddComment}
+            onUpdateComment={handleUpdateComment}
+            onDeleteComment={handleDeleteComment}
         />
 
         <CreateTaskDialog

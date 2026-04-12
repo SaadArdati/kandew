@@ -1,6 +1,6 @@
-import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
-import {useState} from 'react';
-import {ThemeProvider} from './context/ThemeContext';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useState } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home/Home';
@@ -15,33 +15,33 @@ import TeamManagement from './pages/TeamManagement/TeamManagement';
 import TeamCreation from './pages/TeamCreation/TeamCreation';
 import Tasks from './pages/Tasks/Tasks';
 
-function PublicRoute({isAuthenticated, needsProfileSetup, children}) {
+function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (isAuthenticated) {
-        return <Navigate to={needsProfileSetup ? '/setup-profile' : '/app'} replace/>;
+        return <Navigate to={needsProfileSetup ? '/setup-profile' : '/app'} replace />;
     }
 
     return children;
 }
 
-function ProtectedRoute({isAuthenticated, needsProfileSetup, children}) {
+function ProtectedRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace/>;
+        return <Navigate to="/" replace />;
     }
 
     if (needsProfileSetup) {
-        return <Navigate to="/setup-profile" replace/>;
+        return <Navigate to="/setup-profile" replace />;
     }
 
     return children;
 }
 
-function SetupProfileRoute({isAuthenticated, needsProfileSetup, children}) {
+function SetupProfileRoute({ isAuthenticated, needsProfileSetup, children }) {
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace/>;
+        return <Navigate to="/login" replace />;
     }
 
     if (!needsProfileSetup) {
-        return <Navigate to="/app" replace/>;
+        return <Navigate to="/app" replace />;
     }
 
     return children;
@@ -52,35 +52,35 @@ export default function App() {
     const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
     const [registeredUser, setRegisteredUser] = useState(null);
 
-    function handleLogin({email, password}) {
+    function handleLogin({ email, password }) {
         if (!email.trim() || !password.trim()) {
-            return {ok: false, message: 'Email and password are required.'};
+            return { ok: false, message: 'Email and password are required.' };
         }
         if (!/\S+@\S+\.\S+/.test(email)) {
-            return {ok: false, message: 'Enter a valid email address.'};
+            return { ok: false, message: 'Enter a valid email address.' };
         }
         if (password.length < 6) {
-            return {ok: false, message: 'Password must be at least 6 characters.'};
+            return { ok: false, message: 'Password must be at least 6 characters.' };
         }
 
         setIsAuthenticated(true);
         setNeedsProfileSetup(false);
 
-        return {ok: true};
+        return { ok: true };
     }
 
-    function handleRegister({username, email, password}) {
+    function handleRegister({ username, email, password }) {
         if (!username.trim() || !email.trim() || !password.trim()) {
-            return {ok: false, message: 'Please complete all fields.'};
+            return { ok: false, message: 'Please complete all fields.' };
         }
         if (username.trim().length < 3) {
-            return {ok: false, message: 'Username must be at least 3 characters.'};
+            return { ok: false, message: 'Username must be at least 3 characters.' };
         }
         if (!/\S+@\S+\.\S+/.test(email)) {
-            return {ok: false, message: 'Enter a valid email address.'};
+            return { ok: false, message: 'Enter a valid email address.' };
         }
         if (password.length < 6) {
-            return {ok: false, message: 'Password must be at least 6 characters.'};
+            return { ok: false, message: 'Password must be at least 6 characters.' };
         }
 
         setRegisteredUser({
@@ -91,7 +91,7 @@ export default function App() {
         setIsAuthenticated(true);
         setNeedsProfileSetup(true);
 
-        return {ok: true};
+        return { ok: true };
     }
 
     function handleCompleteProfile(profileData) {
@@ -103,12 +103,17 @@ export default function App() {
         setNeedsProfileSetup(false);
     }
 
+    function handleLogout() {
+        setIsAuthenticated(false);
+        setNeedsProfileSetup(false);
+    }
+
     return (
         <ThemeProvider>
             <BrowserRouter basename="/kandew">
                 <Routes>
                     {/* Landing */}
-                    <Route index element={<Landing/>}/>
+                    <Route path="/" element={<Landing />} />
 
                     {/* Auth */}
                     <Route
@@ -118,7 +123,7 @@ export default function App() {
                                 isAuthenticated={isAuthenticated}
                                 needsProfileSetup={needsProfileSetup}
                             >
-                                <Login onLogin={handleLogin}/>
+                                <Login onLogin={handleLogin} />
                             </PublicRoute>
                         }
                     />
@@ -129,7 +134,7 @@ export default function App() {
                                 isAuthenticated={isAuthenticated}
                                 needsProfileSetup={needsProfileSetup}
                             >
-                                <Register onRegister={handleRegister}/>
+                                <Register onRegister={handleRegister} />
                             </PublicRoute>
                         }
                     />
@@ -140,7 +145,7 @@ export default function App() {
                                 isAuthenticated={isAuthenticated}
                                 needsProfileSetup={needsProfileSetup}
                             >
-                                <ForgotPassword/>
+                                <ForgotPassword />
                             </PublicRoute>
                         }
                     />
@@ -167,19 +172,19 @@ export default function App() {
                                 isAuthenticated={isAuthenticated}
                                 needsProfileSetup={needsProfileSetup}
                             >
-                                <Layout/>
+                                <Layout onLogout={handleLogout} />
                             </ProtectedRoute>
                         }
                     >
-                        <Route index element={<Home/>}/>
-                        <Route path="tasks" element={<Tasks/>}/>
-                        <Route path="account" element={<AccountSettings/>}/>
-                        <Route path="team/new" element={<TeamCreation/>}/>
-                        <Route path="team/:teamId/manage" element={<TeamManagement/>}/>
+                        <Route index element={<Home />} />
+                        <Route path="tasks" element={<Tasks />} />
+                        <Route path="account" element={<AccountSettings />} />
+                        <Route path="team/new" element={<TeamCreation />} />
+                        <Route path="team/:teamId/manage" element={<TeamManagement />} />
                     </Route>
 
                     {/* 404 */}
-                    <Route path="*" element={<NotFound/>}/>
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

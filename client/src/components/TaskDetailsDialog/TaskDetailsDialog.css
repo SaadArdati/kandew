@@ -12,15 +12,15 @@
 
 .task-dialog {
     position: relative;
-    width: min(760px, 100%);
-    max-height: 90vh;
-    overflow-y: auto;
+    width: min(1100px, 100%);
+    height: min(88vh, 820px);
     background: var(--color-surface);
     color: var(--color-on-surface);
     border: 1px solid var(--color-outline);
     border-radius: 16px;
     box-shadow: 0 20px 50px color-mix(in srgb, var(--color-on-surface) 25%, transparent);
     padding: 1.5rem;
+    overflow: hidden;
 }
 
 .task-dialog-top-actions {
@@ -82,6 +82,63 @@
     gap: 0.6rem;
     margin-bottom: 1.25rem;
     padding-right: 5.5rem;
+}
+
+.task-dialog-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 420px);
+    gap: 1.5rem;
+    height: 100%;
+    min-height: 0;
+}
+
+.task-dialog-main {
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+}
+
+.task-dialog-comments-panel {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--color-outline);
+    padding-left: 1.25rem;
+}
+
+.task-dialog-comments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-outline);
+}
+
+.task-dialog-comments-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.task-dialog-comment-composer {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.task-dialog-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    min-height: 0;
 }
 
 .task-dialog-priority {
@@ -202,7 +259,7 @@
 }
 
 .task-dialog-move-btn {
-    flex: 1;
+    flex: 1 1 8.5rem;
     min-width: 0;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--color-outline);
@@ -233,6 +290,252 @@
     cursor: default;
 }
 
+.task-dialog-comment-compose-label,
+.task-dialog-existing-comments-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-on-surface-variant);
+    margin: 0 0 0.6rem;
+    flex-shrink: 0;
+}
+
+.task-dialog-comments-panel {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--color-outline);
+    padding-left: 1.25rem;
+    padding-top: 1.75rem;
+    background: var(--color-surface);
+}
+
+.task-dialog-comments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-outline);
+    flex-shrink: 0;
+}
+
+.task-dialog-comments-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.task-dialog-comment-count {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-outline);
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-dialog-comment-composer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.9rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 14px;
+    background: var(--color-surface-container-high);
+    flex-shrink: 0;
+}
+
+.task-dialog-comment-composer-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.task-dialog-comment-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--color-outline);
+    background: var(--color-surface-container);
+}
+
+.task-dialog-comment-textarea {
+    width: 100%;
+    min-height: 88px;
+    max-height: 140px;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    font: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.task-dialog-comment-textarea::placeholder {
+    color: var(--color-on-surface-variant);
+}
+
+.task-dialog-comment-textarea:focus {
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+    border-color: var(--color-primary);
+}
+
+.task-dialog-comment-composer-actions,
+.task-dialog-comment-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.task-dialog-comment-submit,
+.task-dialog-comment-save,
+.task-dialog-comment-cancel {
+    border: none;
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.task-dialog-comment-submit,
+.task-dialog-comment-save {
+    background: var(--color-primary);
+    color: white;
+}
+
+.task-dialog-comment-cancel {
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    border: 1px solid var(--color-outline);
+}
+
+.task-dialog-comment-submit:disabled,
+.task-dialog-comment-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.task-dialog-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 0.25rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--color-outline);
+}
+
+.task-dialog-comment-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.task-dialog-comment-body {
+    flex: 1;
+    min-width: 0;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--color-outline);
+    border-radius: 12px;
+    background: var(--color-surface-container-high);
+    box-sizing: border-box;
+}
+
+.task-dialog-comment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+}
+
+.task-dialog-comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--color-on-surface-variant);
+    font-size: 0.82rem;
+}
+
+.task-dialog-comment-meta strong {
+    color: var(--color-on-surface);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.task-dialog-comment-edited {
+    font-size: 0.72rem;
+    padding: 0.14rem 0.38rem;
+    border-radius: 9999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline);
+    color: var(--color-on-surface-variant);
+}
+
+.task-dialog-comment-actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.task-dialog-comment-actions button {
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    border-radius: 6px;
+}
+
+.task-dialog-comment-actions button:hover {
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    text-decoration: none;
+}
+
+.task-dialog-comment-text {
+    margin: 0;
+    color: var(--color-on-surface);
+    font-size: 0.94rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.task-dialog-comment-edit {
+    display: flex;
+    flex-direction: column;
+}
+
+.task-dialog-no-comments {
+    margin: 0;
+    padding: 0.75rem 0.1rem 0.1rem;
+    color: var(--color-on-surface-variant);
+    font-size: 0.92rem;
+}
+
 @media (max-width: 640px) {
     .task-dialog {
         padding: 1.1rem;
@@ -250,4 +553,19 @@
     .task-dialog-footer {
         justify-content: flex-start;
     }
+
+    .task-dialog-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .task-dialog-main {
+        overflow: visible;
+        padding-right: 0;
+    }
+
+    .task-dialog-comment-list {
+        max-height: 28vh;
+    }
+
 }

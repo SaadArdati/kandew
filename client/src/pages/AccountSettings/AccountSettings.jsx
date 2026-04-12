@@ -71,7 +71,7 @@ export default function AccountSettings() {
 
     function handleSignOut() {
         if (onLogout) onLogout();
-        navigate('/login');
+        navigate('/', { replace: true });
     }
 
     return (
