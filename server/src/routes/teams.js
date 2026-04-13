@@ -7,7 +7,8 @@ const router = express.Router();
 router.get('/', authenticate, async (req, res, next) => {
     try {
         const [teams] = await pool.query(
-            `SELECT t.* FROM teams t
+            `SELECT t.*, m.role AS current_user_role
+             FROM teams t
              INNER JOIN memberships m ON t.id = m.team_id
              WHERE m.user_id = ?`,
             [req.user.id]
@@ -21,7 +22,8 @@ router.get('/', authenticate, async (req, res, next) => {
 router.get('/:id', authenticate, async (req, res, next) => {
     try {
         const [teams] = await pool.query(
-            `SELECT t.* FROM teams t
+            `SELECT t.*, m.role AS current_user_role
+             FROM teams t
              INNER JOIN memberships m ON t.id = m.team_id
              WHERE t.id = ? AND m.user_id = ?`,
             [req.params.id, req.user.id]

@@ -48,6 +48,7 @@ export default function CreateTaskDialog({
     open,
     onClose,
     onCreate,
+    onDelete,
     onUpdate,
     members,
     activeTeamId,
@@ -164,6 +165,18 @@ export default function CreateTaskDialog({
         } else {
             onCreate?.(payload);
         }
+    }
+
+    async function handleDeleteClick() {
+        if (!isEditMode || !initialTask?.id || !onDelete) return;
+
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this task? This action cannot be undone.'
+        );
+
+        if (!confirmed) return;
+
+        await onDelete(initialTask.id);
     }
 
     return (
@@ -300,9 +313,21 @@ export default function CreateTaskDialog({
                     </div>
 
                     <div className="create-task-actions">
+
+                        {isEditMode && (
+                            <button
+                                type="button"
+                                className="create-task-delete-btn"
+                                onClick={handleDeleteClick}
+                            >
+                                Delete Task
+                            </button>
+                        )}
+
                         <button type="submit" className="create-task-submit">
                             {isEditMode ? 'Save Changes' : 'Create'}
                         </button>
+
                     </div>
                 </form>
             </div>

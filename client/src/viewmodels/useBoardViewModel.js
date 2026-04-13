@@ -1,24 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { addTask, getColumnsByTeam, getTasksByTeam, saveTaskMove, updateTask } from '../repositories/taskRepository';
+import {
+    addTask,
+    deleteTask,
+    getColumnsByTeam,
+    getTasksByTeam,
+    saveTaskMove,
+    updateTask,
+} from '../repositories/taskRepository';
 import { normalizeTask, transitionTaskForColumn } from '../utils/petalUtils';
 
 export default function useBoardViewModel(activeTeamId) {
-    const [tasks, setTasks] = useState(() => getTasksByTeam(activeTeamId));
+    const [tasks, setTasks] = useState([]);
+    const [loadingTasks, setLoadingTasks] = useState(true);
     const [draggedTaskId, setDraggedTaskId] = useState(null);
     const [dragOverCol, setDragOverCol] = useState(null);
     const [dropIndex, setDropIndex] = useState(null);
     const [celebratingCols, setCelebratingCols] = useState(new Set());
     const [victoryTaskIds, setVictoryTaskIds] = useState(new Set());
     const celebrationTimers = useRef([]);
-
-    // Reset all state when team changes (adjusting state during render)
-    const [trackedTeamId, setTrackedTeamId] = useState(activeTeamId);
-    if (trackedTeamId !== activeTeamId) {
-        setTrackedTeamId(activeTeamId);
-        setTasks(getTasksByTeam(activeTeamId));
-        setCelebratingCols(new Set());
-        setVictoryTaskIds(new Set());
-    }
 
     // Clean up celebration timers when team changes
     useEffect(() => {
@@ -30,6 +29,45 @@ export default function useBoardViewModel(activeTeamId) {
 
     const columns = useMemo(() => getColumnsByTeam(activeTeamId), [activeTeamId]);
     const firstColumnId = columns[0]?.id ?? 'todo';
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadTasks() {
+            if (!activeTeamId) {
+                setTasks([]);
+                setLoadingTasks(false);
+                return;
+            }
+
+            try {
+                setLoadingTasks(true);
+                const loadedTasks = await getTasksByTeam(activeTeamId);
+
+                if (cancelled) return;
+
+                setTasks(loadedTasks);
+                setCelebratingCols(new Set());
+                setVictoryTaskIds(new Set());
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+
+                if (!cancelled) {
+                    setTasks([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingTasks(false);
+                }
+            }
+        }
+
+        loadTasks();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTeamId]);
 
     const tasksByColumn = useMemo(() => {
         return columns.map((column) => ({
@@ -158,7 +196,10 @@ export default function useBoardViewModel(activeTeamId) {
             targetTasks.splice(insertionIndex, 0, movedTask);
 
             const newTasks = [...otherTasks, ...targetTasks].map(normalizeTask);
-            saveTaskMove(activeTeamId, newTasks);
+            saveTaskMove(draggedTaskId, {
+                columnId,
+                sortOrder: insertionIndex,
+            });
             checkCelebrations(prevTasks, newTasks);
             return newTasks;
         });
@@ -186,34 +227,27 @@ export default function useBoardViewModel(activeTeamId) {
                 t.id === taskId ? movedTask : t
             ).map(normalizeTask);
 
-            saveTaskMove(activeTeamId, newTasks);
+            saveTaskMove(taskId, {
+                columnId: targetColumnId,
+            });
             checkCelebrations(prevTasks, newTasks);
             return newTasks;
         });
     }
 
-    function handleCreateTask(taskData) {
-        const newTask = normalizeTask({
-            id: `task-${Date.now()}`,
+    async function handleCreateTask(taskData) {
+        const createdTask = await addTask({
             title: taskData.title,
             description: taskData.description,
             priority: taskData.priority,
             columnId: taskData.columnId || firstColumnId,
             teamId: taskData.teamId || activeTeamId,
             assigneeUserId: taskData.assigneeUserId,
-            assignee: taskData.assignee,
             dueDate: taskData.dueDate,
             maxPetals: taskData.maxPetals,
-            createdAt: new Date().toISOString(),
-            creatorUserId: taskData.creatorUserId ?? null,
-            reviewEnteredAt: null,
-            frozenPetalsAtReview: null,
-            completedAt: null,
-            earnedPetals: null,
         });
 
-        addTask(newTask);
-        setTasks((previousTasks) => [...previousTasks, newTask]);
+        setTasks((previousTasks) => [...previousTasks, createdTask]);
     }
 
     function handleUpdateTask(taskId, updates) {
@@ -233,6 +267,14 @@ export default function useBoardViewModel(activeTeamId) {
         return updateTask(taskId, updates);
     }
 
+    async function handleDeleteTask(taskId) {
+        await deleteTask(taskId);
+
+        setTasks((previousTasks) =>
+            previousTasks.filter((task) => task.id !== taskId)
+        );
+    }
+
     return {
         columns,
         tasksByColumn,
@@ -250,5 +292,7 @@ export default function useBoardViewModel(activeTeamId) {
         handleMoveTask,
         handleCreateTask,
         handleUpdateTask,
+        handleDeleteTask,
+        loadingTasks,
     };
 }

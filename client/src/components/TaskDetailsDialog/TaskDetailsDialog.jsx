@@ -103,7 +103,13 @@ export default function TaskDetailsDialog({
     }
 
     function canModifyComment(comment) {
-        return comment.authorUserId === currentUser?.id || canManageComments;
+        const currentUserId = currentUser?.id;
+
+        return (
+            String(comment.authorUserId) === String(currentUserId) ||
+            String(comment.authorUserId) === String(currentUserId).replace('user-', '') ||
+            canManageComments
+        );
     }
 
     if (!task) return null;
@@ -245,7 +251,7 @@ export default function TaskDetailsDialog({
                             )}
                         </div>
                     </div>
-                    
+
                     <aside className="task-dialog-comments-panel">
                         <div className="task-dialog-comments-header">
                             <h3>Comments</h3>

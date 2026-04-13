@@ -1,24 +1,16 @@
-import {NavLink, useNavigate} from 'react-router-dom';
-import {initialMembers} from '../../data/mockData';
+import { NavLink, useNavigate } from 'react-router-dom';
 import './TeamPanel.css';
 import '../../easings.css';
 
-export default function TeamPanel({teams, activeTeam, onSelectTeam, profile}) {
+export default function TeamPanel({ teams, activeTeam, onSelectTeam, profile }) {
     const navigate = useNavigate();
 
     const safeProfile = profile ?? {
         id: 'guest-user', name: 'Account', email: '', avatar: 'https://picsum.photos/seed/default-user/80/80',
     };
 
-    const createdTeams = teams.filter((team) => team.creatorUserId === safeProfile.id);
-
-    const memberTeams = teams.filter((team) => {
-        const isCreator = team.creatorUserId === safeProfile.id;
-
-        const isMember = initialMembers.some((member) => member.teamId === team.id && member.userId === safeProfile.id);
-
-        return !isCreator && isMember;
-    });
+    const createdTeams = teams.filter((team) => team.currentUserRole === 'owner');
+    const memberTeams = teams.filter((team) => team.currentUserRole !== 'owner');
 
     function handleTeamClick(teamId) {
         onSelectTeam(teamId);
@@ -36,7 +28,7 @@ export default function TeamPanel({teams, activeTeam, onSelectTeam, profile}) {
                         onClick={() => handleTeamClick(team.id)}
                         title={`${team.name} (Created by you)`}
                     >
-                        <img src={team.icon} alt={team.name}/>
+                        <img src={team.icon} alt={team.name} />
                     </button>
                 </div>))}
 
@@ -51,7 +43,7 @@ export default function TeamPanel({teams, activeTeam, onSelectTeam, profile}) {
                 </div>
             </div>
 
-            <div className="team-panel-divider"/>
+            <div className="team-panel-divider" />
 
             <div className="team-section">
                 <div className="team-section-label">Member</div>
@@ -62,21 +54,21 @@ export default function TeamPanel({teams, activeTeam, onSelectTeam, profile}) {
                         onClick={() => handleTeamClick(team.id)}
                         title={`${team.name} (Member)`}
                     >
-                        <img src={team.icon} alt={team.name}/>
+                        <img src={team.icon} alt={team.name} />
                     </button>
                 </div>))}
             </div>
         </div>
 
         <div className="team-panel-bottom">
-            <div className="team-panel-divider"/>
+            <div className="team-panel-divider" />
 
             <NavLink
                 to="/app/account"
-                className={({isActive}) => `team-icon-btn profile-icon-btn ${isActive ? 'active' : ''}`}
+                className={({ isActive }) => `team-icon-btn profile-icon-btn ${isActive ? 'active' : ''}`}
                 title="Account settings"
             >
-                <img src={safeProfile.avatar} alt={safeProfile.name}/>
+                <img src={safeProfile.avatar} alt={safeProfile.name} />
             </NavLink>
         </div>
     </aside>);

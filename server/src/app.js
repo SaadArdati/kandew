@@ -6,6 +6,9 @@ import authRoutes from './routes/auth.js';
 import teamRoutes from './routes/teams.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+import taskRoutes from './routes/tasks.js';
+import commentRoutes from './routes/comments.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +17,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/teams', taskRoutes);
+app.use('/api', commentRoutes);
 
 app.use(errorHandler);
 

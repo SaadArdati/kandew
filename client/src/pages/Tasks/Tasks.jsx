@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TeamPanel from '../../components/TeamPanel/TeamPanel';
 import useTeamViewModel from '../../viewmodels/useTeamViewModel';
@@ -19,6 +19,8 @@ export default function Tasks() {
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [teamFilter, setTeamFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [allTasks, setAllTasks] = useState([]);
+    const [loadingTasks, setLoadingTasks] = useState(true);
 
     const statusOptions = useMemo(() => ([
         { value: 'todo', label: 'To Do' },
@@ -34,16 +36,49 @@ export default function Tasks() {
         done: 'Done',
     }), []);
 
-    // Gather all tasks across all teams
-    const allTasks = useMemo(
-        () => teams.flatMap((team) => {
-            return getTasksByTeam(team.id).map((task) => ({
-                ...task,
-                teamName: team.name,
-            }));
-        }),
-        [teams]
-    );
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadAllTasks() {
+            try {
+                setLoadingTasks(true);
+
+                const tasksByTeam = await Promise.all(
+                    teams.map(async (team) => {
+                        const tasks = await getTasksByTeam(team.id);
+                        return tasks.map((task) => ({
+                            ...task,
+                            teamName: team.name,
+                        }));
+                    })
+                );
+
+                if (!cancelled) {
+                    setAllTasks(tasksByTeam.flat());
+                }
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+                if (!cancelled) {
+                    setAllTasks([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoadingTasks(false);
+                }
+            }
+        }
+
+        if (teams.length > 0) {
+            loadAllTasks();
+        } else {
+            setAllTasks([]);
+            setLoadingTasks(false);
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [teams]);
 
     // Apply search and filters
     const filteredTasks = useMemo(() => {
@@ -138,7 +173,11 @@ export default function Tasks() {
                 </div>
 
                 {/* Task list */}
-                {filteredTasks.length > 0 ? (
+                {loadingTasks ? (
+                    <div className="tasks-empty">
+                        <p>Loading tasks...</p>
+                    </div>
+                ) : filteredTasks.length > 0 ? (
                     <div className="tasks-list">
                         {filteredTasks.map((task) => {
                             const petals = getTaskPetals(task);
