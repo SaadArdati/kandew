@@ -246,3 +246,65 @@ export async function deleteComment(commentId) {
     method: 'DELETE',
   })
 }
+export async function createTeam(name, icon) {
+  const team = await request('/teams', {
+    method: 'POST',
+    body: JSON.stringify({ name, icon }),
+  })
+  return mapTeam(team)
+}
+
+export async function renameTeamById(teamId, newName) {
+  const team = await request(`/teams/${teamId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name: newName }),
+  })
+  return mapTeam(team)
+}
+
+export async function updateTeamIcon(teamId, iconUrl) {
+  const team = await request(`/teams/${teamId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ icon: iconUrl }),
+  })
+  return mapTeam(team)
+}
+
+export async function deleteTeamById(teamId) {
+  return request(`/teams/${teamId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function inviteMemberToTeam(teamId, email) {
+  await request(`/teams/${teamId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+  const members = await request(`/teams/${teamId}/members`)
+  return members.map((member) => mapMember(member, teamId))
+}
+
+export async function kickMemberFromTeam(teamId, memberId) {
+  await request(`/teams/${teamId}/members/${memberId}`, {
+    method: 'DELETE',
+  })
+  const members = await request(`/teams/${teamId}/members`)
+  return members.map((member) => mapMember(member, teamId))
+}
+
+export async function getStatsByTeam(teamId) {
+  const members = await request(`/teams/${teamId}/members`)
+  const memberCount = members.length
+  const petals = members.reduce((sum, m) => sum + Number(m.petals_earned ?? 0), 0)
+  return { memberCount, activeTasks: 0, petals }
+}
+
+export async function getMemberPetalsByTeam(teamId) {
+  const members = await request(`/teams/${teamId}/members`)
+  const petalMap = {}
+  for (const member of members) {
+    petalMap[member.id] = Number(member.petals_earned ?? 0)
+  }
+  return petalMap
+}
