@@ -86,13 +86,13 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
                     key={url}
                     type="button"
                     onClick={() => setSelectedAvatar(url)}
-                    className={`rounded-full overflow-hidden ring-2 transition-all ${
-                      selectedAvatar === url
-                        ? 'ring-primary scale-110'
-                        : 'ring-transparent hover:ring-outline'
-                    }`}
-                  >
-                    <img src={url} alt="avatar option" className="w-10 h-10 object-cover" />
+                  className={`w-10 h-10 rounded-full overflow-hidden ring-2 transition-all flex-shrink-0 ${
+                   selectedAvatar === url
+                     ? 'ring-primary scale-110'
+                    : 'ring-transparent hover:ring-outline'
+                  }`}
+>
+                  <img src={url} alt="avatar option" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
