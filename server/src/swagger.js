@@ -75,7 +75,7 @@ const options = {
             current_user_role: {
               type: 'string',
               enum: ['owner', 'admin', 'member'],
-              description: "Role of the authenticated caller — present on list/get responses.",
+              description: 'Role of the authenticated caller — present on list/get responses.',
             },
           },
           example: {

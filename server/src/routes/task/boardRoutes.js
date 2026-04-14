@@ -1,12 +1,7 @@
 import express from 'express'
 import pool from '../../db.js'
 import { authenticate } from '../../middleware/auth.js'
-import {
-  VALID_PRIORITIES,
-  VALID_COLUMNS,
-  TASK_SELECT,
-  buildTaskFilters,
-} from './filters.js'
+import { VALID_PRIORITIES, VALID_COLUMNS, TASK_SELECT, buildTaskFilters } from './filters.js'
 
 const router = express.Router()
 

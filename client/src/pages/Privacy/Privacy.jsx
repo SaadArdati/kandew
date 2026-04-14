@@ -14,12 +14,12 @@ export default function Privacy() {
       <PageBody>
         <p className="text-[0.9375rem] leading-relaxed text-on-surface-variant">
           By accessing Kandew, you acknowledge that no information provided herein shall be sold,
-          rented, leased, or otherwise conveyed to third parties, nor to second parties, nor, to
-          the best of our ability, to ourselves after hours. Your tasks remain in the database in
-          which they were written. Your petals remain on your account. In the unlikely event of
-          data loss, we will issue a formal expression of regret, suitable for framing. These
-          policies are effective immediately and retroactively, as well as prospectively, which is
-          to say: always.
+          rented, leased, or otherwise conveyed to third parties, nor to second parties, nor, to the
+          best of our ability, to ourselves after hours. Your tasks remain in the database in which
+          they were written. Your petals remain on your account. In the unlikely event of data loss,
+          we will issue a formal expression of regret, suitable for framing. These policies are
+          effective immediately and retroactively, as well as prospectively, which is to say:
+          always.
         </p>
       </PageBody>
     </MarketingLayout>
