@@ -11,7 +11,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 ## Team Members
 
 | Name         | Pages                                           |
-|--------------|-------------------------------------------------|
+| ------------ | ----------------------------------------------- |
 | Saad Ardati  | Home (Kanban Board), Tasks (List View)          |
 | Leen Nassar  | Team Creation, Team Management                  |
 | Nour Mardini | Account Settings, Task Details, Task Creation   |
@@ -20,6 +20,7 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 ## Running the Frontend Locally
 
 ### 1. Prerequisites
+
 Make sure you have the following installed:
 
 - Node.js (version 18 or 20 recommended)
@@ -90,30 +91,39 @@ Open this link in your browser to view the application.
 ## Screenshots
 
 ### Home Page (Light Mode)
+
 ![Home Page (Light Mode)](screenshots/HomepageLight.png)
 
 ### Home Page (Dark Mode)
+
 ![Home Page (Dark Mode)](screenshots/Homepage.png)
 
 ### Tasks Page
+
 ![Tasks Page](screenshots/TasksPage.png)
 
 ### Task Dialog
+
 ![Task Dialog](screenshots/TaskDialog.png)
 
 ### Task Creation Dialog
+
 ![Task Creation Dialog](screenshots/TaskCreationDialog.png)
 
 ### Team Management (Screen One)
+
 ![Team Management (Screen One)](screenshots/TeamManagement1.png)
 
 ### Team Management (Screen Two)
+
 ![Team Management (Screen Two)](screenshots/TeamManagement2.png)
 
 ### Team Creation
+
 ![Team Creation](screenshots/TeamCreation1.png)
 
 ### Account Settings
+
 ![Account Settings](screenshots/AccountSettingsPage.png)
 
 ## Contributions
@@ -141,11 +151,11 @@ Open this link in your browser to view the application.
 - Built the Task Details dialog popup showing full task info when a card is clicked
 - Built the Task Creation dialog with name, description, assignee, priority, due date, and petal count
 - Designed and implemented the petal-based scoring system:
-    - Each task starts with 0-5 petals assigned by the team creator
-    - Petals decrease linearly over time from creation to due date
-    - When moved to Review, petals freeze at their current value
-    - If moved back, petal countdown resumes
-    - When moved to Done, remaining petals are awarded as points
+  - Each task starts with 0-5 petals assigned by the team creator
+  - Petals decrease linearly over time from creation to due date
+  - When moved to Review, petals freeze at their current value
+  - If moved back, petal countdown resumes
+  - When moved to Done, remaining petals are awarded as points
 - Built the Account Settings page with profile editing and points tracking
 - Updated the team sidebar to show user-specific teams (created vs member)
 - Added the due date alert system that highlights tasks nearing their deadline
@@ -173,31 +183,33 @@ This project uses **mock data** to simulate backend interactions and enable full
 
 Mock data is used to simulate real interactions such as:
 
-- Creating tasks  
-- Updating task status (drag-and-drop between columns)  
-- Assigning users to tasks  
-- Tracking task progress and points (petals system)  
-- Filtering tasks and calculating statistics in the Account Settings page  
+- Creating tasks
+- Updating task status (drag-and-drop between columns)
+- Assigning users to tasks
+- Tracking task progress and points (petals system)
+- Filtering tasks and calculating statistics in the Account Settings page
 
 All updates are handled in memory, meaning:
+
 - Changes are immediately reflected in the UI
 - No actual network requests are made
 
 ### Limitations
 
-- Data is **not persistent** — refreshing the page resets all changes  
-- There is no real authentication or database storage  
-- Multi-user interaction is simulated rather than real  
+- Data is **not persistent** — refreshing the page resets all changes
+- There is no real authentication or database storage
+- Multi-user interaction is simulated rather than real
 
 ### Purpose
 
 Using mock data allows:
-- Faster development and testing  
-- Clear separation between frontend and backend logic  
-- Easy transition to a real backend in the future  
+
+- Faster development and testing
+- Clear separation between frontend and backend logic
+- Easy transition to a real backend in the future
 
 All data is stored in local React state using mock arrays in `src/data/mockData.js`. The app simulates CRUD operations (
-create, read, update, delete) through a repository pattern in `src/repositories/`. 
+create, read, update, delete) through a repository pattern in `src/repositories/`.
 The current structure (repository + mock data) is designed so that it can later be replaced with real API calls with minimal changes to the rest of the application.
 
 ## Tech Stack

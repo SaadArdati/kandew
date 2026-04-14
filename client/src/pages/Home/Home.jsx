@@ -1,279 +1,287 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Home.css';
-import TeamPanel from '../../components/TeamPanel/TeamPanel';
-import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
-import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDialog';
-import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog';
-import useTeamViewModel from '../../viewmodels/useTeamViewModel';
-import useBoardViewModel from '../../viewmodels/useBoardViewModel';
-import { currentUser } from '../../data/mockData';
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import './Home.css'
+import TeamPanel from '../../components/TeamPanel/TeamPanel'
+import KanbanBoard from '../../components/KanbanBoard/KanbanBoard'
+import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDialog'
+import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog'
+import useTeamViewModel from '../../viewmodels/useTeamViewModel'
+import useBoardViewModel from '../../viewmodels/useBoardViewModel'
+import { currentUser } from '../../data/mockData'
 import {
-    getCommentsByTask,
-    addComment,
-    updateComment,
-    deleteComment,
-    getMembersByTeam,
-} from '../../repositories/taskRepository';
+  getCommentsByTask,
+  addComment,
+  updateComment,
+  deleteComment,
+  getMembersByTeam,
+} from '../../repositories/taskRepository'
 
 export default function Home() {
-    const navigate = useNavigate();
-    const { teams, activeTeamId, activeTeam, activeTeamName, selectTeam } = useTeamViewModel();
-    const board = useBoardViewModel(activeTeamId);
+  const navigate = useNavigate()
+  const { teams, activeTeamId, activeTeam, activeTeamName, selectTeam } = useTeamViewModel()
+  const board = useBoardViewModel(activeTeamId)
 
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [taskBeingEdited, setTaskBeingEdited] = useState(null);
-    const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
-    const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
-    const [now, setNow] = useState(() => Date.now());
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedMembers, setSelectedMembers] = useState([]);
-    const [priorityFilter, setPriorityFilter] = useState('all');
-    const [comments, setComments] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [taskBeingEdited, setTaskBeingEdited] = useState(null)
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedMembers, setSelectedMembers] = useState([])
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [comments, setComments] = useState([])
 
-    useEffect(() => {
-        const intervalId = window.setInterval(() => {
-            setNow(Date.now());
-        }, 60000);
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(Date.now())
+    }, 60000)
 
-        return () => window.clearInterval(intervalId);
-    }, []);
+    return () => window.clearInterval(intervalId)
+  }, [])
 
-    useEffect(() => {
-        let cancelled = false;
+  useEffect(() => {
+    let cancelled = false
 
-        async function loadMembers() {
-            if (!activeTeamId) {
-                setTeamMembers([]);
-                return;
-            }
+    async function loadMembers() {
+      if (!activeTeamId) {
+        setTeamMembers([])
+        return
+      }
 
-            try {
-                const members = await getMembersByTeam(activeTeamId);
-                if (!cancelled) {
-                    setTeamMembers(members);
-                }
-            } catch (error) {
-                console.error('Failed to load team members:', error);
-                if (!cancelled) {
-                    setTeamMembers([]);
-                }
-            }
+      try {
+        const members = await getMembersByTeam(activeTeamId)
+        if (!cancelled) {
+          setTeamMembers(members)
         }
-
-        loadMembers();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [activeTeamId]);
-
-    useEffect(() => {
-        if (!selectedTask) return;
-
-        async function loadComments() {
-            try {
-                const data = await getCommentsByTask(selectedTask.id);
-                setComments(data);
-            } catch (error) {
-                console.error('Failed to load comments:', error);
-            }
+      } catch (error) {
+        console.error('Failed to load team members:', error)
+        if (!cancelled) {
+          setTeamMembers([])
         }
-
-        loadComments();
-    }, [selectedTask]);
-
-    const canManageActiveTeam = activeTeam?.currentUserRole === 'owner';
-    const canCreateTasks = canManageActiveTeam;
-
-    const [teamMembers, setTeamMembers] = useState([]);
-
-    // Filter tasksByColumn based on search, member selection, and priority
-    const filteredTasksByColumn = useMemo(() => {
-        return board.tasksByColumn.map((col) => ({
-            ...col, tasks: col.tasks.filter((task) => {
-                const q = searchQuery.toLowerCase();
-                const matchesSearch = !searchQuery || task.title.toLowerCase().includes(q) || task.description.toLowerCase().includes(q) || task.assignee.toLowerCase().includes(q);
-
-                const matchesMember = selectedMembers.length === 0 || selectedMembers.includes(task.assigneeUserId);
-
-                const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
-
-                return matchesSearch && matchesMember && matchesPriority;
-            }),
-        }));
-    }, [board.tasksByColumn, searchQuery, selectedMembers, priorityFilter]);
-
-    const canEditSelectedTask = canManageActiveTeam;
-
-    function toggleMember(userId) {
-        setSelectedMembers((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]);
+      }
     }
 
-    function handleOpenTask(task) {
-        setSelectedTask(task);
+    loadMembers()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeTeamId])
+
+  useEffect(() => {
+    if (!selectedTask) return
+
+    async function loadComments() {
+      try {
+        const data = await getCommentsByTask(selectedTask.id)
+        setComments(data)
+      } catch (error) {
+        console.error('Failed to load comments:', error)
+      }
     }
 
-    function handleCloseTask() {
-        setSelectedTask(null);
+    loadComments()
+  }, [selectedTask])
+
+  const canManageActiveTeam = activeTeam?.currentUserRole === 'owner'
+  const canCreateTasks = canManageActiveTeam
+
+  const [teamMembers, setTeamMembers] = useState([])
+
+  // Filter tasksByColumn based on search, member selection, and priority
+  const filteredTasksByColumn = useMemo(() => {
+    return board.tasksByColumn.map((col) => ({
+      ...col,
+      tasks: col.tasks.filter((task) => {
+        const q = searchQuery.toLowerCase()
+        const matchesSearch =
+          !searchQuery ||
+          task.title.toLowerCase().includes(q) ||
+          task.description.toLowerCase().includes(q) ||
+          task.assignee.toLowerCase().includes(q)
+
+        const matchesMember =
+          selectedMembers.length === 0 || selectedMembers.includes(task.assigneeUserId)
+
+        const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter
+
+        return matchesSearch && matchesMember && matchesPriority
+      }),
+    }))
+  }, [board.tasksByColumn, searchQuery, selectedMembers, priorityFilter])
+
+  const canEditSelectedTask = canManageActiveTeam
+
+  function toggleMember(userId) {
+    setSelectedMembers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    )
+  }
+
+  function handleOpenTask(task) {
+    setSelectedTask(task)
+  }
+
+  function handleCloseTask() {
+    setSelectedTask(null)
+  }
+
+  function handleManageTeam() {
+    if (!activeTeam) return
+    navigate(`/app/team/${activeTeam.id}/manage`)
+  }
+
+  function handleOpenCreateTask() {
+    setIsCreateTaskOpen(true)
+  }
+
+  function handleCloseCreateTask() {
+    setIsCreateTaskOpen(false)
+  }
+
+  async function handleCreateTask(taskData) {
+    try {
+      await board.handleCreateTask(taskData)
+      setIsCreateTaskOpen(false)
+    } catch (error) {
+      console.error('Failed to create task:', error)
     }
+  }
 
-    function handleManageTeam() {
-        if (!activeTeam) return;
-        navigate(`/app/team/${activeTeam.id}/manage`);
+  async function handleDeleteTask(taskId) {
+    try {
+      await board.handleDeleteTask(taskId)
+      setIsEditTaskOpen(false)
+      setSelectedTask(null)
+    } catch (error) {
+      console.error('Failed to delete task:', error)
     }
+  }
 
-    function handleOpenCreateTask() {
-        setIsCreateTaskOpen(true);
-    }
+  async function handleAddComment(body) {
+    if (!selectedTask) return
 
-    function handleCloseCreateTask() {
-        setIsCreateTaskOpen(false);
-    }
+    const created = await addComment(selectedTask.id, body)
 
-    async function handleCreateTask(taskData) {
-        try {
-            await board.handleCreateTask(taskData);
-            setIsCreateTaskOpen(false);
-        } catch (error) {
-            console.error('Failed to create task:', error);
-        }
-    }
+    setComments((prev) => [...prev, created])
+  }
 
-    async function handleDeleteTask(taskId) {
-        try {
-            await board.handleDeleteTask(taskId);
-            setIsEditTaskOpen(false);
-            setSelectedTask(null);
-        } catch (error) {
-            console.error('Failed to delete task:', error);
-        }
-    }
+  async function handleUpdateComment(commentId, body) {
+    const updated = await updateComment(commentId, body)
 
-    async function handleAddComment(body) {
-        if (!selectedTask) return;
+    setComments((prev) => prev.map((c) => (c.id === commentId ? updated : c)))
+  }
 
-        const created = await addComment(selectedTask.id, body);
+  async function handleDeleteComment(commentId) {
+    const confirmed = window.confirm('Delete this comment?')
+    if (!confirmed) return
 
-        setComments((prev) => [...prev, created]);
-    }
+    await deleteComment(commentId)
 
-    async function handleUpdateComment(commentId, body) {
-        const updated = await updateComment(commentId, body);
+    setComments((prev) => prev.filter((c) => c.id !== commentId))
+  }
 
-        setComments((prev) =>
-            prev.map((c) => (c.id === commentId ? updated : c))
-        );
-    }
+  function handleOpenEditTask() {
+    if (!selectedTask) return
 
-    async function handleDeleteComment(commentId) {
-        const confirmed = window.confirm('Delete this comment?');
-        if (!confirmed) return;
+    setTaskBeingEdited(selectedTask)
+    setSelectedTask(null)
+    setIsEditTaskOpen(true)
+  }
 
-        await deleteComment(commentId);
+  function handleCloseEditTask() {
+    setIsEditTaskOpen(false)
+    setTaskBeingEdited(null)
+  }
 
-        setComments((prev) => prev.filter((c) => c.id !== commentId));
-    }
+  function handleUpdateTask(updatedValues) {
+    if (!taskBeingEdited) return
 
-    function handleOpenEditTask() {
-        if (!selectedTask) return;
+    board.handleUpdateTask(taskBeingEdited.id, updatedValues)
+    setIsEditTaskOpen(false)
+    setTaskBeingEdited(null)
+  }
 
-        setTaskBeingEdited(selectedTask);
-        setSelectedTask(null);
-        setIsEditTaskOpen(true);
-    }
-
-    function handleCloseEditTask() {
-        setIsEditTaskOpen(false);
-        setTaskBeingEdited(null);
-    }
-
-    function handleUpdateTask(updatedValues) {
-        if (!taskBeingEdited) return;
-
-        board.handleUpdateTask(taskBeingEdited.id, updatedValues);
-        setIsEditTaskOpen(false);
-        setTaskBeingEdited(null);
-    }
-
-    return (<>
-        <div className="home-layout">
-            <TeamPanel
-                teams={teams}
-                activeTeam={activeTeamId}
-                onSelectTeam={selectTeam}
-                profile={currentUser}
-            />
-
-            <KanbanBoard
-                teamName={activeTeamName}
-                tasksByColumn={filteredTasksByColumn}
-                draggedTaskId={board.draggedTaskId}
-                dragOverCol={board.dragOverCol}
-                dropIndex={board.dropIndex}
-                onDragStart={board.handleDragStart}
-                onColumnDragOver={board.handleColumnDragOver}
-                onDragLeave={board.handleDragLeave}
-                onDrop={board.handleDrop}
-                onDragEnd={board.handleDragEnd}
-                celebratingCols={board.celebratingCols}
-                victoryTaskIds={board.victoryTaskIds}
-                onCardClick={handleOpenTask}
-                canManageTeam={canManageActiveTeam}
-                onManageTeam={handleManageTeam}
-                canCreateTasks={canCreateTasks}
-                onOpenCreateTask={handleOpenCreateTask}
-                currentTime={now}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                members={teamMembers}
-                selectedMembers={selectedMembers}
-                onToggleMember={toggleMember}
-                priorityFilter={priorityFilter}
-                onPriorityChange={setPriorityFilter}
-            />
-        </div>
-
-        <TaskDetailsDialog
-            task={selectedTask}
-            onClose={handleCloseTask}
-            currentTime={now}
-            columns={board.columns}
-            canEdit={canEditSelectedTask}
-            onEdit={handleOpenEditTask}
-            onMoveTask={(targetColumnId) => {
-                if (!selectedTask) return;
-                board.handleMoveTask(selectedTask.id, targetColumnId);
-                setSelectedTask(null);
-            }}
-            comments={comments}
-            currentUser={currentUser}
-            canManageComments={false}
-            onAddComment={handleAddComment}
-            onUpdateComment={handleUpdateComment}
-            onDeleteComment={handleDeleteComment}
+  return (
+    <>
+      <div className="home-layout">
+        <TeamPanel
+          teams={teams}
+          activeTeam={activeTeamId}
+          onSelectTeam={selectTeam}
+          profile={currentUser}
         />
 
-        <CreateTaskDialog
-            open={isCreateTaskOpen}
-            onClose={handleCloseCreateTask}
-            onCreate={handleCreateTask}
-            members={teamMembers}
-            activeTeamId={activeTeamId}
-            firstColumnId={board.firstColumnId}
-            mode="create"
+        <KanbanBoard
+          teamName={activeTeamName}
+          tasksByColumn={filteredTasksByColumn}
+          draggedTaskId={board.draggedTaskId}
+          dragOverCol={board.dragOverCol}
+          dropIndex={board.dropIndex}
+          onDragStart={board.handleDragStart}
+          onColumnDragOver={board.handleColumnDragOver}
+          onDragLeave={board.handleDragLeave}
+          onDrop={board.handleDrop}
+          onDragEnd={board.handleDragEnd}
+          celebratingCols={board.celebratingCols}
+          victoryTaskIds={board.victoryTaskIds}
+          onCardClick={handleOpenTask}
+          canManageTeam={canManageActiveTeam}
+          onManageTeam={handleManageTeam}
+          canCreateTasks={canCreateTasks}
+          onOpenCreateTask={handleOpenCreateTask}
+          currentTime={now}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          members={teamMembers}
+          selectedMembers={selectedMembers}
+          onToggleMember={toggleMember}
+          priorityFilter={priorityFilter}
+          onPriorityChange={setPriorityFilter}
         />
+      </div>
 
-        <CreateTaskDialog
-            open={isEditTaskOpen}
-            onClose={handleCloseEditTask}
-            onUpdate={handleUpdateTask}
-            onDelete={handleDeleteTask}
-            members={teamMembers}
-            activeTeamId={activeTeamId}
-            firstColumnId={board.firstColumnId}
-            mode="edit"
-            initialTask={taskBeingEdited}
-        />
-    </>);
+      <TaskDetailsDialog
+        task={selectedTask}
+        onClose={handleCloseTask}
+        currentTime={now}
+        columns={board.columns}
+        canEdit={canEditSelectedTask}
+        onEdit={handleOpenEditTask}
+        onMoveTask={(targetColumnId) => {
+          if (!selectedTask) return
+          board.handleMoveTask(selectedTask.id, targetColumnId)
+          setSelectedTask(null)
+        }}
+        comments={comments}
+        currentUser={currentUser}
+        canManageComments={false}
+        onAddComment={handleAddComment}
+        onUpdateComment={handleUpdateComment}
+        onDeleteComment={handleDeleteComment}
+      />
+
+      <CreateTaskDialog
+        open={isCreateTaskOpen}
+        onClose={handleCloseCreateTask}
+        onCreate={handleCreateTask}
+        members={teamMembers}
+        activeTeamId={activeTeamId}
+        firstColumnId={board.firstColumnId}
+        mode="create"
+      />
+
+      <CreateTaskDialog
+        open={isEditTaskOpen}
+        onClose={handleCloseEditTask}
+        onUpdate={handleUpdateTask}
+        onDelete={handleDeleteTask}
+        members={teamMembers}
+        activeTeamId={activeTeamId}
+        firstColumnId={board.firstColumnId}
+        mode="edit"
+        initialTask={taskBeingEdited}
+      />
+    </>
+  )
 }
