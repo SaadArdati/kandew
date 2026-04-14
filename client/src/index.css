@@ -17,6 +17,8 @@
   --color-on-surface: #1a2820;
   --color-on-surface-variant: #506458;
   --color-outline: #b8c8bc;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
 }
 
 /* ── Dark mode ────────────────────────────────────────────── */

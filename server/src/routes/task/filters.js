@@ -6,7 +6,6 @@ const SORT_COLUMNS = {
   due_date: 't.due_date',
   title: 't.title',
   sort_order: 't.sort_order',
-  // ascending = least → most important, so asc gives low first.
   priority: "FIELD(t.priority, 'low', 'medium', 'high')",
   column_id: "FIELD(t.column_id, 'todo', 'in-progress', 'review', 'done')",
 }
@@ -149,7 +148,9 @@ export function buildTaskFilters(query, userId) {
     }
     const direction = dir.toUpperCase()
     orderBy =
-      rawField === 'sort_order' ? `${field} ${direction}` : `${field} ${direction}, t.sort_order ASC`
+      rawField === 'sort_order'
+        ? `${field} ${direction}`
+        : `${field} ${direction}, t.sort_order ASC`
   }
 
   let limit = DEFAULT_LIMIT

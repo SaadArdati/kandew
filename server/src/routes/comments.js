@@ -66,19 +66,18 @@ router.get('/tasks/:taskId/comments', authenticate, async (req, res, next) => {
     }
 
     const [comments] = await pool.query(
-      `SELECT
-                c.id,
-                c.task_id,
-                c.author_user_id,
-                u.username AS author_name,
-                u.avatar AS author_avatar,
-                c.body,
-                c.created_at,
-                c.updated_at
-             FROM comments c
-             INNER JOIN users u ON u.id = c.author_user_id
-             WHERE c.task_id = ?
-             ORDER BY c.created_at ASC`,
+      `SELECT c.id,
+              c.task_id,
+              c.author_user_id,
+              u.username AS author_name,
+              u.avatar   AS author_avatar,
+              c.body,
+              c.created_at,
+              c.updated_at
+       FROM comments c
+              INNER JOIN users u ON u.id = c.author_user_id
+       WHERE c.task_id = ?
+       ORDER BY c.created_at `,
       [taskId]
     )
 

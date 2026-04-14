@@ -14,6 +14,11 @@ import AccountSettings from './pages/AccountSettings/AccountSettings'
 import TeamManagement from './pages/TeamManagement/TeamManagement'
 import TeamCreation from './pages/TeamCreation/TeamCreation'
 import Tasks from './pages/Tasks/Tasks'
+import FAQ from './pages/FAQ/FAQ'
+import About from './pages/About/About'
+import Contact from './pages/Contact/Contact'
+import Privacy from './pages/Privacy/Privacy'
+import Terms from './pages/Terms/Terms'
 
 function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
   if (isAuthenticated) {
@@ -154,6 +159,13 @@ export default function App() {
               </SetupProfileRoute>
             }
           />
+
+          {/* Public marketing pages */}
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           {/* App (protected) */}
           <Route

@@ -293,11 +293,11 @@ router.post('/:id/tasks', authenticate, async (req, res, next) => {
     }
 
     const [maxOrderRows] = await pool.query(
-      'SELECT COALESCE(MAX(sort_order), -1) AS maxOrder FROM tasks WHERE team_id = ? AND column_id = ?',
+      'SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM tasks WHERE team_id = ? AND column_id = ?',
       [teamId, columnId]
     )
 
-    const sortOrder = Number(maxOrderRows[0].maxOrder) + 1
+    const sortOrder = Number(maxOrderRows[0]['max_order']) + 1
 
     const [result] = await pool.query(
       `INSERT INTO tasks (

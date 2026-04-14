@@ -1,17 +1,7 @@
-.landing {
-  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
-}
-
 .landing a:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 0.5rem;
-}
-
-.landing-hero-title,
-.landing-features-heading,
-.landing-petals-title {
-  font-family: 'Instrument Serif', Georgia, serif;
 }
 
 .landing-petals-badge {
