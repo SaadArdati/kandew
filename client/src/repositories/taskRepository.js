@@ -13,9 +13,6 @@ export {
   addComment,
   updateComment,
   deleteComment,
-} from './liveTaskRepository'
-
-export {
   createTeam,
   renameTeamById,
   updateTeamIcon,
@@ -24,4 +21,8 @@ export {
   kickMemberFromTeam,
   getStatsByTeam,
   getMemberPetalsByTeam,
-} from './mockTaskRepository'
+} from './liveTaskRepository'
+
+
+  
+
