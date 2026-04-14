@@ -4,6 +4,7 @@ export {
   getColumnsByTeam,
   getMembersByTeam,
   getTasksByTeam,
+  getMyTasks,
   addTask,
   saveTaskMove,
   updateTask,

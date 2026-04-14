@@ -2,24 +2,25 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TeamPanel from '../../components/TeamPanel/TeamPanel'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
-import { getTasksByTeam } from '../../repositories/taskRepository'
+import { getMyTasks } from '../../repositories/taskRepository'
 import { currentUser } from '../../data/mockData'
 import { formatTaskDueDate, getTaskPetals, getTaskMaxPetals } from '../../utils/petalUtils'
 import './Tasks.css'
 
 /**
- * Tasks list page — displays all tasks across teams with search and filter.
- * Satisfies the rubric requirement for a "List View" with search/filter UI.
+ * Tasks list page — displays tasks across all of the user's teams with
+ * server-side search and filters.
  */
 export default function Tasks() {
   const navigate = useNavigate()
   const { teams, activeTeamId, selectTeam } = useTeamViewModel()
 
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [teamFilter, setTeamFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [allTasks, setAllTasks] = useState([])
+  const [tasks, setTasks] = useState([])
   const [loadingTasks, setLoadingTasks] = useState(true)
 
   const statusOptions = useMemo(
@@ -43,29 +44,31 @@ export default function Tasks() {
   )
 
   useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  useEffect(() => {
     let cancelled = false
 
-    async function loadAllTasks() {
+    async function loadTasks() {
       try {
         setLoadingTasks(true)
 
-        const tasksByTeam = await Promise.all(
-          teams.map(async (team) => {
-            const tasks = await getTasksByTeam(team.id)
-            return tasks.map((task) => ({
-              ...task,
-              teamName: team.name,
-            }))
-          })
-        )
+        const result = await getMyTasks({
+          q: debouncedSearch,
+          priority: priorityFilter,
+          columnId: statusFilter,
+          teamId: teamFilter,
+        })
 
         if (!cancelled) {
-          setAllTasks(tasksByTeam.flat())
+          setTasks(result)
         }
       } catch (error) {
         console.error('Failed to load tasks:', error)
         if (!cancelled) {
-          setAllTasks([])
+          setTasks([])
         }
       } finally {
         if (!cancelled) {
@@ -74,37 +77,12 @@ export default function Tasks() {
       }
     }
 
-    if (teams.length > 0) {
-      loadAllTasks()
-    } else {
-      setAllTasks([])
-      setLoadingTasks(false)
-    }
+    loadTasks()
 
     return () => {
       cancelled = true
     }
-  }, [teams])
-
-  // Apply search and filters
-  const filteredTasks = useMemo(() => {
-    return allTasks.filter((task) => {
-      const searchLower = search.toLowerCase()
-      const matchesSearch =
-        !search ||
-        task.title.toLowerCase().includes(searchLower) ||
-        task.assignee.toLowerCase().includes(searchLower) ||
-        task.description.toLowerCase().includes(searchLower)
-
-      const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter
-
-      const matchesTeam = teamFilter === 'all' || task.teamId === teamFilter
-
-      const matchesStatus = statusFilter === 'all' || task.columnId === statusFilter
-
-      return matchesSearch && matchesPriority && matchesTeam && matchesStatus
-    })
-  }, [allTasks, search, priorityFilter, teamFilter, statusFilter])
+  }, [debouncedSearch, priorityFilter, teamFilter, statusFilter])
 
   return (
     <div className="tasks-layout">
@@ -122,7 +100,7 @@ export default function Tasks() {
         <div className="tasks-header">
           <h1>All Tasks</h1>
           <p className="tasks-subtitle">
-            {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} found
+            {tasks.length} task{tasks.length !== 1 ? 's' : ''} found
           </p>
         </div>
 
@@ -185,9 +163,9 @@ export default function Tasks() {
           <div className="tasks-empty">
             <p>Loading tasks...</p>
           </div>
-        ) : filteredTasks.length > 0 ? (
+        ) : tasks.length > 0 ? (
           <div className="tasks-list">
-            {filteredTasks.map((task) => {
+            {tasks.map((task) => {
               const petals = getTaskPetals(task)
               const maxPetals = getTaskMaxPetals(task)
               const dueDate = formatTaskDueDate(task.dueDate)

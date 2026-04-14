@@ -4,6 +4,31 @@ import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Teams
+ *     description: Team management and membership
+ */
+
+/**
+ * @openapi
+ * /api/teams:
+ *   get:
+ *     tags: [Teams]
+ *     operationId: listMyTeams
+ *     summary: List teams the authenticated user belongs to
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of teams with the caller's role on each
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Team' }
+ */
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const [teams] = await pool.query(
@@ -19,6 +44,32 @@ router.get('/', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}:
+ *   get:
+ *     tags: [Teams]
+ *     operationId: getTeam
+ *     summary: Get a single team (must be a member)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Team with the caller's role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Team' }
+ *       404:
+ *         description: Team not found or caller is not a member
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.get('/:id', authenticate, async (req, res, next) => {
   try {
     const [teams] = await pool.query(
@@ -39,6 +90,32 @@ router.get('/:id', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams:
+ *   post:
+ *     tags: [Teams]
+ *     operationId: createTeam
+ *     summary: Create a team (caller becomes owner)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/TeamCreate' }
+ *     responses:
+ *       201:
+ *         description: Created team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Team' }
+ *       400:
+ *         description: Missing or invalid team name
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/', authenticate, async (req, res, next) => {
   try {
     const { name, icon } = req.body
@@ -65,6 +142,42 @@ router.post('/', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}:
+ *   put:
+ *     tags: [Teams]
+ *     operationId: updateTeam
+ *     summary: Update a team (owner or admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/TeamUpdate' }
+ *     responses:
+ *       200:
+ *         description: Updated team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Team' }
+ *       400:
+ *         description: No fields provided for update
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       403:
+ *         description: Caller lacks owner/admin role on this team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.put('/:id', authenticate, async (req, res, next) => {
   try {
     const { name, icon, petal_value } = req.body
@@ -108,6 +221,32 @@ router.put('/:id', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}:
+ *   delete:
+ *     tags: [Teams]
+ *     operationId: deleteTeam
+ *     summary: Delete a team (owner only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Team deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       403:
+ *         description: Caller is not the owner
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.delete('/:id', authenticate, async (req, res, next) => {
   try {
     const [membership] = await pool.query(
@@ -126,6 +265,34 @@ router.delete('/:id', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}/members:
+ *   get:
+ *     tags: [Teams]
+ *     operationId: listTeamMembers
+ *     summary: List members of a team with petal and money earnings
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Members with petal and money earnings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Member' }
+ *       403:
+ *         description: Caller is not a member of this team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.get('/:id/members', authenticate, async (req, res, next) => {
   try {
     const [membership] = await pool.query(
@@ -162,6 +329,55 @@ router.get('/:id/members', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}/members:
+ *   post:
+ *     tags: [Teams]
+ *     operationId: inviteTeamMember
+ *     summary: Invite an existing user to the team by email (owner or admin only)
+ *     description: |
+ *       Looks up the user by email and inserts a `memberships` row with the
+ *       `member` role. The user must already exist in the system.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/InviteMemberRequest' }
+ *     responses:
+ *       201:
+ *         description: Member invited
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       400:
+ *         description: Missing email
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       403:
+ *         description: Caller lacks owner/admin role on this team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: No user registered with that email
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       409:
+ *         description: User is already a member of this team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/:id/members', authenticate, async (req, res, next) => {
   try {
     const { email } = req.body
@@ -208,6 +424,44 @@ router.post('/:id/members', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/teams/{id}/members/{memberId}:
+ *   delete:
+ *     tags: [Teams]
+ *     operationId: removeTeamMember
+ *     summary: Remove a member from the team (owner or admin only)
+ *     description: The team owner cannot be removed.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: Team id
+ *       - in: path
+ *         name: memberId
+ *         required: true
+ *         schema: { type: integer }
+ *         description: User id of the member to remove
+ *     responses:
+ *       200:
+ *         description: Member removed
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       403:
+ *         description: Caller lacks owner/admin role, or target is the team owner
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Target user is not a member of this team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.delete('/:id/members/:memberId', authenticate, async (req, res, next) => {
   try {
     const [membership] = await pool.query(

@@ -4,6 +4,46 @@ import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Comments
+ *     description: Task comments (any team member can post; only the author can edit or delete)
+ */
+
+/**
+ * @openapi
+ * /api/tasks/{taskId}/comments:
+ *   get:
+ *     tags: [Comments]
+ *     operationId: listTaskComments
+ *     summary: List comments on a task, oldest first
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: taskId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Array of comments ordered by created_at ASC
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Comment' }
+ *       403:
+ *         description: Caller is not a member of the task's team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Task not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.get('/tasks/:taskId/comments', authenticate, async (req, res, next) => {
   try {
     const { taskId } = req.params
@@ -48,6 +88,47 @@ router.get('/tasks/:taskId/comments', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/tasks/{taskId}/comments:
+ *   post:
+ *     tags: [Comments]
+ *     operationId: createTaskComment
+ *     summary: Add a comment to a task
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: taskId
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CommentBody' }
+ *     responses:
+ *       201:
+ *         description: Created comment
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Comment' }
+ *       400:
+ *         description: Empty or missing comment body
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       403:
+ *         description: Caller is not a member of the task's team
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Task not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/tasks/:taskId/comments', authenticate, async (req, res, next) => {
   try {
     const { taskId } = req.params
@@ -102,6 +183,47 @@ router.post('/tasks/:taskId/comments', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/comments/{commentId}:
+ *   put:
+ *     tags: [Comments]
+ *     operationId: updateComment
+ *     summary: Edit a comment (author only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CommentBody' }
+ *     responses:
+ *       200:
+ *         description: Updated comment
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Comment' }
+ *       400:
+ *         description: Empty or missing comment body
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       403:
+ *         description: Caller is not a team member, or is not the comment author
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Comment not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.put('/comments/:commentId', authenticate, async (req, res, next) => {
   try {
     const { commentId } = req.params
@@ -167,6 +289,37 @@ router.put('/comments/:commentId', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/comments/{commentId}:
+ *   delete:
+ *     tags: [Comments]
+ *     operationId: deleteComment
+ *     summary: Delete a comment (author only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Comment deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       403:
+ *         description: Caller is not a team member, or is not the comment author
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Comment not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.delete('/comments/:commentId', authenticate, async (req, res, next) => {
   try {
     const { commentId } = req.params

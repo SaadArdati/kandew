@@ -9,6 +9,29 @@ const STATIC_COLUMNS = [
   { id: 'done', title: 'Done' },
 ]
 
+function buildQueryString(filters) {
+  if (!filters) return ''
+
+  const params = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (value == null || value === '' || value === 'all') continue
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item != null && item !== '') {
+          params.append(key, String(item))
+        }
+      }
+    } else {
+      params.set(key, String(value))
+    }
+  }
+
+  const query = params.toString()
+  return query ? `?${query}` : ''
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -121,9 +144,17 @@ export async function getMembersByTeam(teamId) {
   return members.map((member) => mapMember(member, teamId))
 }
 
-export async function getTasksByTeam(teamId) {
-  const tasks = await request(`/teams/${teamId}/tasks`)
+export async function getTasksByTeam(teamId, filters) {
+  const tasks = await request(`/teams/${teamId}/tasks${buildQueryString(filters)}`)
   return tasks.map(mapTask)
+}
+
+export async function getMyTasks(filters) {
+  const tasks = await request(`/teams/tasks/mine${buildQueryString(filters)}`)
+  return tasks.map((task) => ({
+    ...mapTask(task),
+    teamName: task.team_name ?? '',
+  }))
 }
 
 export async function addTask(task) {
