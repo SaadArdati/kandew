@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
-export default function Register({ onRegister }) {
+export default function Register({ onRegisterSuccess }) {
   const navigate = useNavigate()
 
   const [username, setUsername] = useState('')
@@ -9,28 +10,50 @@ export default function Register({ onRegister }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [formError, setFormError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(event) {
+  function validatePassword(pw) {
+    if (pw.length < 8) return 'Password must be at least 8 characters long.'
+    if (!/[a-zA-Z]/.test(pw)) return 'Password must contain at least one letter.'
+    if (!/\d/.test(pw)) return 'Password must contain at least one number.'
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return 'Password must contain at least one special character.'
+    return null
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault()
     setFormError('')
+
+    if (!username.trim() || !email.trim() || !password) {
+      setFormError('All fields are required.')
+      return
+    }
 
     if (password !== confirmPassword) {
       setFormError('Passwords do not match.')
       return
     }
 
-    const result = onRegister({
-      username,
-      email,
-      password,
-    })
-
-    if (!result.ok) {
-      setFormError(result.message)
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      setFormError(passwordError)
       return
     }
 
-    navigate('/setup-profile')
+    setLoading(true)
+    try {
+      const res = await axios.post('/api/auth/signup', {
+        name: username.trim(),
+        email: email.trim(),
+        password,
+      })
+      onRegisterSuccess(res.data.token, res.data.user)
+      navigate('/setup-profile')
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -44,56 +67,49 @@ export default function Register({ onRegister }) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-on-surface">
-                Username
-              </label>
+              <label htmlFor="username" className="text-sm font-medium text-on-surface">Username</label>
               <input
                 id="username"
                 type="text"
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="Your username"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-on-surface">
-                Email
-              </label>
+              <label htmlFor="email" className="text-sm font-medium text-on-surface">Email</label>
               <input
                 id="email"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-on-surface">
-                Password
-              </label>
+              <label htmlFor="password" className="text-sm font-medium text-on-surface">Password</label>
               <input
                 id="password"
                 type="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
+              <p className="text-xs text-on-surface-variant">Min 8 characters, include a number and special character</p>
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="confirm-password" className="text-sm font-medium text-on-surface">
-                Confirm Password
-              </label>
+              <label htmlFor="confirm-password" className="text-sm font-medium text-on-surface">Confirm Password</label>
               <input
                 id="confirm-password"
                 type="password"
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
@@ -107,17 +123,16 @@ export default function Register({ onRegister }) {
 
             <button
               type="submit"
-              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold"
+              disabled={loading}
+              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
             >
-              Continue
+              {loading ? 'Creating account…' : 'Continue'}
             </button>
           </form>
 
           <p className="text-center text-sm text-on-surface-variant">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline font-medium">
-              Log in
-            </Link>
+            <Link to="/login" className="text-primary hover:underline font-medium">Log in</Link>
           </p>
         </div>
       </div>

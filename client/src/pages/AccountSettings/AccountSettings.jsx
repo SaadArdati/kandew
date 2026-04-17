@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import TeamPanel from '../../components/TeamPanel/TeamPanel'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
-import { currentUser } from '../../data/mockData'
 import { getTasksByTeam } from '../../repositories/taskRepository'
 import { getEarnedPetals } from '../../utils/petalUtils'
+import axios from 'axios'
 import './AccountSettings.css'
 
 export default function AccountSettings() {
@@ -12,17 +12,20 @@ export default function AccountSettings() {
   const { onLogout } = useOutletContext()
   const { teams, activeTeamId, selectTeam } = useTeamViewModel()
 
-  const [displayName, setDisplayName] = useState(currentUser.name)
-  const [avatarPreview, setAvatarPreview] = useState(currentUser.avatar)
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+
+  const [displayName, setDisplayName] = useState(storedUser.username ?? '')
+  const [avatarPreview, setAvatarPreview] = useState(storedUser.avatar ?? '')
   const [selectedTeamFilter, setSelectedTeamFilter] = useState('all')
   const [saveMessage, setSaveMessage] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const allTasks = useMemo(() => teams.flatMap((team) => getTasksByTeam(team.id)), [teams])
 
   const completedTasks = useMemo(() => {
     return allTasks.filter(
       (task) =>
-        task.assigneeUserId === currentUser.id &&
+        task.assigneeUserId === storedUser.id &&
         task.columnId === 'done' &&
         (selectedTeamFilter === 'all' || task.teamId === selectedTeamFilter)
     )
@@ -36,7 +39,7 @@ export default function AccountSettings() {
   const totalPoints = useMemo(
     () =>
       allTasks
-        .filter((task) => task.assigneeUserId === currentUser.id && task.columnId === 'done')
+        .filter((task) => task.assigneeUserId === storedUser.id && task.columnId === 'done')
         .reduce((sum, task) => sum + getEarnedPetals(task), 0),
     [allTasks]
   )
@@ -49,7 +52,6 @@ export default function AccountSettings() {
   function handleAvatarChange(event) {
     const file = event.target.files?.[0]
     if (!file) return
-
     if (avatarPreview?.startsWith('blob:')) {
       URL.revokeObjectURL(avatarPreview)
     }
@@ -57,13 +59,31 @@ export default function AccountSettings() {
     setAvatarPreview(previewUrl)
   }
 
-  function handleSaveProfile(event) {
+  async function handleSaveProfile(event) {
     event.preventDefault()
-    setSaveMessage('Profile changes saved locally for this demo.')
-    setTimeout(() => setSaveMessage(''), 2500)
+    setSaving(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.put('/api/auth/profile', {
+        name: displayName,
+        avatar: avatarPreview,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const updatedUser = { ...storedUser, username: res.data.username, avatar: res.data.avatar }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setSaveMessage('Profile saved successfully!')
+    } catch {
+      setSaveMessage('Failed to save profile.')
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMessage(''), 2500)
+    }
   }
 
   function handleSignOut() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     if (onLogout) onLogout()
     navigate('/', { replace: true })
   }
@@ -74,7 +94,7 @@ export default function AccountSettings() {
         teams={teams}
         activeTeam={activeTeamId}
         onSelectTeam={selectTeam}
-        profile={{ ...currentUser, name: displayName, avatar: avatarPreview }}
+        profile={{ ...storedUser, name: displayName, avatar: avatarPreview }}
       />
 
       <section className="account-content">
@@ -86,7 +106,6 @@ export default function AccountSettings() {
               Manage your profile and track the petals you earned from completed tasks.
             </p>
           </div>
-
           <button className="account-signout-btn" onClick={handleSignOut}>
             Sign Out
           </button>
@@ -96,10 +115,9 @@ export default function AccountSettings() {
           <form className="account-card profile-card" onSubmit={handleSaveProfile}>
             <div className="profile-card-header">
               <img src={avatarPreview} alt={displayName} className="account-avatar-large" />
-
               <div className="profile-card-meta">
                 <h2>{displayName}</h2>
-                <p>{currentUser.email}</p>
+                <p>{storedUser.email}</p>
               </div>
             </div>
 
@@ -126,12 +144,12 @@ export default function AccountSettings() {
 
             <div className="account-form-group">
               <label htmlFor="account-email">Email</label>
-              <input id="account-email" type="email" value={currentUser.email} disabled />
+              <input id="account-email" type="email" value={storedUser.email ?? ''} disabled />
             </div>
 
             <div className="account-form-actions">
-              <button type="submit" className="account-primary-btn">
-                Save Changes
+              <button type="submit" disabled={saving} className="account-primary-btn">
+                {saving ? 'Saving…' : 'Save Changes'}
               </button>
               {saveMessage && <span className="account-save-message">{saveMessage}</span>}
             </div>
@@ -140,21 +158,14 @@ export default function AccountSettings() {
           <div className="account-card points-card">
             <div className="card-heading">
               <h2>Points</h2>
-              <p>
-                Completed tasks for <strong>{selectedTeamName}</strong> with earned petals.
-              </p>
+              <p>Completed tasks for <strong>{selectedTeamName}</strong> with earned petals.</p>
             </div>
 
-            <div
-              className={`points-summary ${
-                selectedTeamFilter === 'all' ? 'points-summary-single' : ''
-              }`}
-            >
+            <div className={`points-summary ${selectedTeamFilter === 'all' ? 'points-summary-single' : ''}`}>
               <div className="points-box">
                 <span className="points-label">Total Points</span>
                 <strong>{totalPoints}</strong>
               </div>
-
               {selectedTeamFilter !== 'all' && (
                 <div className="points-box">
                   <span className="points-label">{selectedTeamName} Points</span>
@@ -173,9 +184,7 @@ export default function AccountSettings() {
               >
                 <option value="all">All Teams</option>
                 {teams.map((team) => (
-                  <option key={team.id} value={team.id}>
-                    {team.name}
-                  </option>
+                  <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
               </select>
             </div>
@@ -183,10 +192,8 @@ export default function AccountSettings() {
             {completedTasks.length > 0 ? (
               <div className="points-task-list">
                 {completedTasks.map((task) => {
-                  const teamName =
-                    teams.find((team) => team.id === task.teamId)?.name ?? task.teamId
+                  const teamName = teams.find((team) => team.id === task.teamId)?.name ?? task.teamId
                   const earnedPetals = getEarnedPetals(task)
-
                   return (
                     <div key={task.id} className="points-task-item">
                       <div className="points-task-main">
@@ -194,14 +201,9 @@ export default function AccountSettings() {
                           <h3>{task.title}</h3>
                           <span className="task-team-badge">{teamName}</span>
                         </div>
-
                         <p>{task.description}</p>
-
-                        <span className={`task-priority-badge priority-${task.priority}`}>
-                          {task.priority}
-                        </span>
+                        <span className={`task-priority-badge priority-${task.priority}`}>{task.priority}</span>
                       </div>
-
                       <div className="points-task-score">
                         <span>Points</span>
                         <strong>{earnedPetals}</strong>

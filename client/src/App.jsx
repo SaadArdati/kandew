@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
 
 import Layout from './components/Layout/Layout'
@@ -24,7 +24,6 @@ function PublicRoute({ isAuthenticated, needsProfileSetup, children }) {
   if (isAuthenticated) {
     return <Navigate to={needsProfileSetup ? '/setup-profile' : '/app'} replace />
   }
-
   return children
 }
 
@@ -32,11 +31,9 @@ function ProtectedRoute({ isAuthenticated, needsProfileSetup, children }) {
   if (!isAuthenticated) {
     return <Navigate to="/" replace />
   }
-
   if (needsProfileSetup) {
     return <Navigate to="/setup-profile" replace />
   }
-
   return children
 }
 
@@ -44,71 +41,50 @@ function SetupProfileRoute({ isAuthenticated, needsProfileSetup, children }) {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
-
   if (!needsProfileSetup) {
     return <Navigate to="/app" replace />
   }
-
   return children
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'))
   const [needsProfileSetup, setNeedsProfileSetup] = useState(false)
-  const [registeredUser, setRegisteredUser] = useState(null)
+  const [registeredUser, setRegisteredUser] = useState(() => {
+    const user = localStorage.getItem('user')
+    return user ? JSON.parse(user) : null
+  })
 
-  function handleLogin({ email, password }) {
-    if (!email.trim() || !password.trim()) {
-      return { ok: false, message: 'Email and password are required.' }
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      return { ok: false, message: 'Enter a valid email address.' }
-    }
-    if (password.length < 6) {
-      return { ok: false, message: 'Password must be at least 6 characters.' }
-    }
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    setIsAuthenticated(!!token)
+  }, [])
 
+  function handleLoginSuccess(token, user) {
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
     setIsAuthenticated(true)
     setNeedsProfileSetup(false)
-
-    return { ok: true }
   }
 
-  function handleRegister({ username, email, password }) {
-    if (!username.trim() || !email.trim() || !password.trim()) {
-      return { ok: false, message: 'Please complete all fields.' }
-    }
-    if (username.trim().length < 3) {
-      return { ok: false, message: 'Username must be at least 3 characters.' }
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      return { ok: false, message: 'Enter a valid email address.' }
-    }
-    if (password.length < 6) {
-      return { ok: false, message: 'Password must be at least 6 characters.' }
-    }
-
-    setRegisteredUser({
-      username: username.trim(),
-      email: email.trim(),
-    })
-
+  function handleRegisterSuccess(token, user) {
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    setRegisteredUser(user)
     setIsAuthenticated(true)
     setNeedsProfileSetup(true)
-
-    return { ok: true }
   }
 
   function handleCompleteProfile(profileData) {
-    setRegisteredUser((prev) => ({
-      ...prev,
-      ...profileData,
-    }))
-
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const updatedUser = { ...user, ...profileData }
+    localStorage.setItem('user', JSON.stringify(updatedUser))
     setNeedsProfileSetup(false)
   }
 
   function handleLogout() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setIsAuthenticated(false)
     setNeedsProfileSetup(false)
   }
@@ -117,15 +93,13 @@ export default function App() {
     <ThemeProvider>
       <BrowserRouter basename="/kandew">
         <Routes>
-          {/* Landing */}
           <Route path="/" element={<Landing />} />
 
-          {/* Auth */}
           <Route
             path="/login"
             element={
               <PublicRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
-                <Login onLogin={handleLogin} />
+                <Login onLoginSuccess={handleLoginSuccess} />
               </PublicRoute>
             }
           />
@@ -133,7 +107,7 @@ export default function App() {
             path="/register"
             element={
               <PublicRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
-                <Register onRegister={handleRegister} />
+                <Register onRegisterSuccess={handleRegisterSuccess} />
               </PublicRoute>
             }
           />
@@ -148,33 +122,22 @@ export default function App() {
           <Route
             path="/setup-profile"
             element={
-              <SetupProfileRoute
-                isAuthenticated={isAuthenticated}
-                needsProfileSetup={needsProfileSetup}
-              >
-                <SetupProfile
-                  registeredUser={registeredUser}
-                  onCompleteProfile={handleCompleteProfile}
-                />
+              <SetupProfileRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
+                <SetupProfile registeredUser={registeredUser} onCompleteProfile={handleCompleteProfile} />
               </SetupProfileRoute>
             }
           />
 
-          {/* Public marketing pages */}
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
 
-          {/* App (protected) */}
           <Route
             path="/app"
             element={
-              <ProtectedRoute
-                isAuthenticated={isAuthenticated}
-                needsProfileSetup={needsProfileSetup}
-              >
+              <ProtectedRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
                 <Layout onLogout={handleLogout} />
               </ProtectedRoute>
             }
@@ -186,7 +149,6 @@ export default function App() {
             <Route path="team/:teamId/manage" element={<TeamManagement />} />
           </Route>
 
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
