@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react'
 import {
-  deleteTeamById,
-  getMemberPetalsByTeam,
-  getMembersByTeam,
-  getStatsByTeam,
-  getTeamById,
   inviteMemberToTeam,
   kickMemberFromTeam,
+  deleteTeamById,
   renameTeamById,
   updateTeamIcon,
+  getStatsByTeam,
+  getMemberPetalsByTeam,
 } from '../repositories/taskRepository'
+import { useData, useTeamMembers } from '../context/useData'
 
 const EMPTY_STATS = { memberCount: 0, activeTasks: 0, petals: 0 }
 
 export default function useTeamManagementViewModel(teamId) {
-  const [team, setTeam] = useState(null)
-  const [members, setMembers] = useState([])
+  const { teams, loadingTeams, updateTeamInCache, removeTeamFromCache } = useData()
+  const team = teams.find((t) => String(t.id) === String(teamId)) ?? null
+
+  const { members, loading: loadingMembers, setMembers } = useTeamMembers(teamId)
+
   const [stats, setStats] = useState(EMPTY_STATS)
   const [memberPetals, setMemberPetals] = useState({})
-  const [loading, setLoading] = useState(true)
+  const [loadingAux, setLoadingAux] = useState(true)
+
   const [inviteEmail, setInviteEmail] = useState('')
   const [newName, setNewName] = useState('')
   const [petalValue, setPetalValue] = useState(1.0)
@@ -29,40 +32,33 @@ export default function useTeamManagementViewModel(teamId) {
   const [savingIcon, setSavingIcon] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  const loading = loadingTeams || loadingMembers || loadingAux
+
+  useEffect(() => {
+    if (team) setNewName(team.name)
+  }, [team])
+
   useEffect(() => {
     if (!teamId) return undefined
     let cancelled = false
-
     async function load() {
       try {
-        setLoading(true)
-        const [t, m, s, p] = await Promise.all([
-          getTeamById(teamId),
-          getMembersByTeam(teamId),
-          getStatsByTeam(teamId),
-          getMemberPetalsByTeam(teamId),
-        ])
+        setLoadingAux(true)
+        const [s, p] = await Promise.all([getStatsByTeam(teamId), getMemberPetalsByTeam(teamId)])
         if (cancelled) return
-        setTeam(t)
-        setMembers(m)
         setStats(s)
         setMemberPetals(p)
-        setNewName(t?.name ?? '')
       } catch (error) {
-        console.error('Failed to load team management data:', error)
+        console.error('Failed to load team stats:', error)
         if (!cancelled) {
-          setTeam(null)
-          setMembers([])
           setStats(EMPTY_STATS)
           setMemberPetals({})
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoadingAux(false)
       }
     }
-
     load()
-
     return () => {
       cancelled = true
     }
@@ -105,6 +101,7 @@ export default function useTeamManagementViewModel(teamId) {
     setDeleting(true)
     try {
       await deleteTeamById(teamId)
+      removeTeamFromCache(team?.id ?? teamId)
       return true
     } catch (error) {
       setActionError(error.message || 'Failed to delete team.')
@@ -120,7 +117,7 @@ export default function useTeamManagementViewModel(teamId) {
     setRenaming(true)
     try {
       const updated = await renameTeamById(teamId, name.trim())
-      setTeam(updated)
+      updateTeamInCache(updated)
       setNewName(updated.name)
       return true
     } catch (error) {
@@ -136,7 +133,7 @@ export default function useTeamManagementViewModel(teamId) {
     setSavingIcon(true)
     try {
       const updated = await updateTeamIcon(teamId, url)
-      setTeam(updated)
+      updateTeamInCache(updated)
       return true
     } catch (error) {
       setActionError(error.message || 'Failed to update team picture.')

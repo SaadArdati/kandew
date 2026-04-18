@@ -13,8 +13,8 @@ import {
   addComment,
   updateComment,
   deleteComment,
-  getMembersByTeam,
 } from '../../repositories/taskRepository'
+import { useTeamMembers } from '../../context/useData'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -30,7 +30,8 @@ export default function Home() {
   const [selectedMembers, setSelectedMembers] = useState([])
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [comments, setComments] = useState([])
-  const [teamMembers, setTeamMembers] = useState([])
+
+  const { members: teamMembers } = useTeamMembers(activeTeamId)
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -39,35 +40,6 @@ export default function Home() {
 
     return () => window.clearInterval(intervalId)
   }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadMembers() {
-      if (!activeTeamId) {
-        setTeamMembers([])
-        return
-      }
-
-      try {
-        const members = await getMembersByTeam(activeTeamId)
-        if (!cancelled) {
-          setTeamMembers(members)
-        }
-      } catch (error) {
-        console.error('Failed to load team members:', error)
-        if (!cancelled) {
-          setTeamMembers([])
-        }
-      }
-    }
-
-    loadMembers()
-
-    return () => {
-      cancelled = true
-    }
-  }, [activeTeamId])
 
   useEffect(() => {
     if (!selectedTask) return
@@ -241,6 +213,7 @@ export default function Home() {
       </div>
 
       <TaskDetailsDialog
+        key={selectedTask?.id ?? 'none'}
         task={selectedTask}
         onClose={handleCloseTask}
         currentTime={now}

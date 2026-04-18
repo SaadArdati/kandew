@@ -1,10 +1,9 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useTheme } from '../../context/useTheme'
 import { useState } from 'react'
 
-export default function Navbar({ onLogout }) {
+export default function Navbar() {
   const { dark, toggleTheme } = useTheme()
-  const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const linkClass = ({ isActive }) =>

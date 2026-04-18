@@ -3,23 +3,32 @@ import {
   addTask,
   deleteTask,
   getColumnsByTeam,
-  getTasksByTeam,
   saveTaskMove,
   updateTask,
 } from '../repositories/taskRepository'
 import { normalizeTask, transitionTaskForColumn } from '../utils/petalUtils'
+import { useTeamTasks } from '../context/useData'
 
 export default function useBoardViewModel(activeTeamId) {
-  const [tasks, setTasks] = useState([])
-  const [loadingTasks, setLoadingTasks] = useState(true)
+  const { tasks, loading: loadingTasks, setTasks } = useTeamTasks(activeTeamId)
+
   const [draggedTaskId, setDraggedTaskId] = useState(null)
   const [dragOverCol, setDragOverCol] = useState(null)
   const [dropIndex, setDropIndex] = useState(null)
   const [celebratingCols, setCelebratingCols] = useState(new Set())
   const [victoryTaskIds, setVictoryTaskIds] = useState(new Set())
   const celebrationTimers = useRef([])
+  const [lastTeamId, setLastTeamId] = useState(activeTeamId)
 
-  // Clean up celebration timers when team changes
+  // React-recommended pattern for resetting state when a prop changes:
+  // call setState during render. Timers are cleared in an effect below
+  // since ref mutation during render isn't allowed.
+  if (lastTeamId !== activeTeamId) {
+    setLastTeamId(activeTeamId)
+    setCelebratingCols(new Set())
+    setVictoryTaskIds(new Set())
+  }
+
   useEffect(() => {
     return () => {
       celebrationTimers.current.forEach(clearTimeout)
@@ -29,45 +38,6 @@ export default function useBoardViewModel(activeTeamId) {
 
   const columns = useMemo(() => getColumnsByTeam(activeTeamId), [activeTeamId])
   const firstColumnId = columns[0]?.id ?? 'todo'
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadTasks() {
-      if (!activeTeamId) {
-        setTasks([])
-        setLoadingTasks(false)
-        return
-      }
-
-      try {
-        setLoadingTasks(true)
-        const loadedTasks = await getTasksByTeam(activeTeamId)
-
-        if (cancelled) return
-
-        setTasks(loadedTasks)
-        setCelebratingCols(new Set())
-        setVictoryTaskIds(new Set())
-      } catch (error) {
-        console.error('Failed to load tasks:', error)
-
-        if (!cancelled) {
-          setTasks([])
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingTasks(false)
-        }
-      }
-    }
-
-    loadTasks()
-
-    return () => {
-      cancelled = true
-    }
-  }, [activeTeamId])
 
   const tasksByColumn = useMemo(() => {
     return columns.map((column) => ({
@@ -81,7 +51,6 @@ export default function useBoardViewModel(activeTeamId) {
       celebrationTimers.current.forEach(clearTimeout)
       celebrationTimers.current = []
 
-      // Build column counts for before and after
       const prevByCol = {}
       const nextByCol = {}
       for (const col of columns) {
@@ -101,7 +70,6 @@ export default function useBoardViewModel(activeTeamId) {
         }
       }
 
-      // Columns that became empty
       const emptied = new Set()
       for (const col of columns) {
         if (prevByCol[col.id].count > 0 && nextByCol[col.id].count === 0) {
@@ -113,7 +81,6 @@ export default function useBoardViewModel(activeTeamId) {
         celebrationTimers.current.push(setTimeout(() => setCelebratingCols(new Set()), 2500))
       }
 
-      // New arrivals in the last column
       const lastCol = columns[columns.length - 1]
       if (lastCol) {
         const prevIds = prevByCol[lastCol.id].taskIds
@@ -130,7 +97,6 @@ export default function useBoardViewModel(activeTeamId) {
     [columns]
   )
 
-  // Clean up celebration timers on unmount
   useEffect(() => {
     return () => celebrationTimers.current.forEach(clearTimeout)
   }, [])
@@ -196,7 +162,7 @@ export default function useBoardViewModel(activeTeamId) {
       saveTaskMove(draggedTaskId, {
         columnId,
         sortOrder: insertionIndex,
-      })
+      }).catch((error) => console.error('Failed to save task move:', error))
       checkCelebrations(prevTasks, newTasks)
       return newTasks
     })
@@ -224,9 +190,9 @@ export default function useBoardViewModel(activeTeamId) {
         .map((t) => (t.id === taskId ? movedTask : t))
         .map(normalizeTask)
 
-      saveTaskMove(taskId, {
-        columnId: targetColumnId,
-      })
+      saveTaskMove(taskId, { columnId: targetColumnId }).catch((error) =>
+        console.error('Failed to save task move:', error)
+      )
       checkCelebrations(prevTasks, newTasks)
       return newTasks
     })
@@ -247,26 +213,23 @@ export default function useBoardViewModel(activeTeamId) {
     setTasks((previousTasks) => [...previousTasks, createdTask])
   }
 
-  function handleUpdateTask(taskId, updates) {
+  async function handleUpdateTask(taskId, updates) {
     setTasks((previousTasks) =>
       previousTasks.map((task) => {
-        if (task.id !== taskId) {
-          return task
-        }
-
-        return normalizeTask({
-          ...task,
-          ...updates,
-        })
+        if (task.id !== taskId) return task
+        return normalizeTask({ ...task, ...updates })
       })
     )
 
-    return updateTask(taskId, updates)
+    try {
+      await updateTask(taskId, updates)
+    } catch (error) {
+      console.error('Failed to update task:', error)
+    }
   }
 
   async function handleDeleteTask(taskId) {
     await deleteTask(taskId)
-
     setTasks((previousTasks) => previousTasks.filter((task) => task.id !== taskId))
   }
 

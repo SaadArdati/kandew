@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import TeamPanel from '../../components/TeamPanel/TeamPanel'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
-import { getTasksByTeam } from '../../repositories/taskRepository'
 import { getEarnedPetals } from '../../utils/petalUtils'
+import { useData } from '../../context/useData'
 import api from '../../lib/api'
 import './AccountSettings.css'
 
@@ -24,32 +24,20 @@ export default function AccountSettings() {
   const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  const [allTasks, setAllTasks] = useState([])
+  const { tasksByTeam, ensureTasks } = useData()
 
   useEffect(() => {
-    if (teams.length === 0) {
-      setAllTasks([])
-      return undefined
-    }
-
-    let cancelled = false
-
-    async function loadAllTasks() {
-      try {
-        const tasksPerTeam = await Promise.all(teams.map((team) => getTasksByTeam(team.id)))
-        if (!cancelled) setAllTasks(tasksPerTeam.flat())
-      } catch (error) {
-        console.error('Failed to load tasks for points panel:', error)
-        if (!cancelled) setAllTasks([])
+    teams.forEach((team) => {
+      if (!(team.id in tasksByTeam)) {
+        ensureTasks(team.id)
       }
-    }
+    })
+  }, [teams, tasksByTeam, ensureTasks])
 
-    loadAllTasks()
-
-    return () => {
-      cancelled = true
-    }
-  }, [teams])
+  const allTasks = useMemo(
+    () => teams.flatMap((team) => tasksByTeam[team.id] ?? []),
+    [teams, tasksByTeam]
+  )
 
   const completedTasks = useMemo(() => {
     return allTasks.filter(

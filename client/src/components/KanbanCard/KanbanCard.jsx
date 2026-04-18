@@ -110,20 +110,37 @@ function animatePetalCelebration(petalRow) {
         }
 
         petals.forEach(({ clone, formX, formY }, i) => {
-          clone.getAnimations().forEach((a) => a.cancel())
-          // Lock the grown size into font-size so cancelling scale doesn't shrink
+          // Bake phase-1's end state into inline styles before cancelling,
+          // so the clone doesn't visually snap back to the card (the old
+          // offset-path's 0% point) for a frame.
+          clone.getAnimations().forEach((animation) => {
+            try {
+              animation.commitStyles()
+            } catch {
+              // commitStyles throws if the element is detached; harmless.
+            }
+            animation.cancel()
+          })
+
+          // Replace the animated scale(2.5) with an equivalent font-size so
+          // the next wobble's transform doesn't fight with a residual scale.
+          // (0.75rem × 2.5 = 1.875rem.)
+          clone.style.transform = ''
           clone.style.fontSize = '1.875rem'
-          // Pin at start of new path so there's no flash to old position
-          clone.style.offsetDistance = '0%'
 
           const side = i % 2 === 0 ? 1 : -1
           const c1x = formX + side * (30 + Math.random() * 30)
           const c1y = formY - 30 + nudge()
           const c2x = ax + side * (20 + Math.random() * 20)
           const c2y = ay - 50 + nudge()
-
           const path = `M ${formX},${formY} C ${c1x},${c1y} ${c2x},${c2y} ${ax},${ay}`
+
+          // Swap path and distance in the same synchronous tick. After
+          // commitStyles, the clone sits at (formX, formY) via the old
+          // path's 100% mark; the new path's 0% mark is also (formX, formY),
+          // so the swap is visually identical.
           clone.style.offsetPath = `path('${path}')`
+          clone.style.offsetDistance = '0%'
 
           addWobble(clone)
 
@@ -135,8 +152,12 @@ function animatePetalCelebration(petalRow) {
           })
 
           flight.onfinish = () => {
-            clone.getAnimations().forEach((a) => a.cancel())
+            // Remove the clone BEFORE cancelling its animations. cancel()
+            // clears fill:forwards and would briefly paint the clone at
+            // offset-distance 0% (formation center) at full font-size — a
+            // stray "big petal" flash if the browser gets a paint in first.
             clone.remove()
+            clone.getAnimations().forEach((a) => a.cancel())
 
             if (i === total - 1 && avatar && !avatar.dataset.bouncing) {
               avatar.dataset.bouncing = '1'

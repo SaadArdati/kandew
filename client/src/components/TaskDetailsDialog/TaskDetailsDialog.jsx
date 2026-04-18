@@ -59,12 +59,6 @@ export default function TaskDetailsDialog({
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editingBody, setEditingBody] = useState('')
 
-  useEffect(() => {
-    setNewCommentBody('')
-    setEditingCommentId(null)
-    setEditingBody('')
-  }, [task])
-
   const sortedComments = useMemo(
     () =>
       [...comments].sort(

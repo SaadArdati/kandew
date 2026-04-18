@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useState } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
+import { DataProvider } from './context/DataProvider'
 
 import Layout from './components/Layout/Layout'
 import Home from './pages/Home/Home'
@@ -141,7 +142,9 @@ export default function App() {
                 isAuthenticated={isAuthenticated}
                 needsProfileSetup={needsProfileSetup}
               >
-                <Layout onLogout={handleLogout} />
+                <DataProvider>
+                  <Layout onLogout={handleLogout} />
+                </DataProvider>
               </ProtectedRoute>
             }
           >
