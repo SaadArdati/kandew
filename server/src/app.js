@@ -19,7 +19,12 @@ if (!process.env.JWT_SECRET) {
 const app = express()
 const PORT = process.env.PORT || 3000
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.use(cors({ origin: allowedOrigins }))
 app.use(express.json())
 
 app.use('/api-docs', swaggerUi.serve)
