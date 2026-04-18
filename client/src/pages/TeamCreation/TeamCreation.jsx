@@ -13,7 +13,7 @@ const PRESET_ICONS = [
 
 export default function TeamCreation() {
   const navigate = useNavigate()
-  const { createTeam, error } = useTeamCreationViewModel()
+  const { createTeam, error, creating } = useTeamCreationViewModel()
 
   const [name, setName] = useState('')
   const [selectedIcon, setSelectedIcon] = useState(PRESET_ICONS[0])
@@ -125,15 +125,17 @@ export default function TeamCreation() {
               <button
                 type="button"
                 onClick={() => navigate('/app')}
-                className="flex-1 border border-outline text-on-surface-variant rounded-xl py-2.5 text-sm font-medium hover:bg-surface-container-high transition-colors"
+                disabled={creating}
+                className="flex-1 border border-outline text-on-surface-variant rounded-xl py-2.5 text-sm font-medium hover:bg-surface-container-high transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 bg-primary hover:bg-primary-container text-white rounded-xl py-2.5 text-sm font-semibold transition-colors shadow"
+                disabled={creating}
+                className="flex-1 bg-primary hover:bg-primary-container text-white rounded-xl py-2.5 text-sm font-semibold transition-colors shadow disabled:opacity-60"
               >
-                Create Team 🌿
+                {creating ? 'Creating…' : 'Create Team 🌿'}
               </button>
             </div>
           </form>
