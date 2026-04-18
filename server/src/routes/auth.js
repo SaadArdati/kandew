@@ -27,10 +27,15 @@ router.post('/signup', async (req, res, next) => {
     }
 
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      return res.status(400).json({ message: 'Password must contain at least one special character.' })
+      return res
+        .status(400)
+        .json({ message: 'Password must contain at least one special character.' })
     }
 
-    const [existing] = await pool.query('SELECT id FROM users WHERE email = ? OR username = ?', [email, name])
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ? OR username = ?', [
+      email,
+      name,
+    ])
 
     if (existing.length > 0) {
       return res.status(409).json({ message: 'Email or username already exists' })
@@ -43,16 +48,11 @@ router.post('/signup', async (req, res, next) => {
       [name, email, hashedPassword]
     )
 
-    const token = jwt.sign(
-      { id: result.insertId, username: name, email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    )
-
-    res.status(201).json({
-      token,
-      user: { id: result.insertId, username: name, email }
+    const token = jwt.sign({ id: result.insertId }, process.env.JWT_SECRET, {
+      expiresIn: '7d',
     })
+
+    res.status(201).json({ token })
   } catch (err) {
     next(err)
   }
@@ -66,7 +66,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Email and password are required' })
     }
 
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email])
+    const [users] = await pool.query('SELECT id, password FROM users WHERE email = ?', [email])
 
     if (users.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' })
@@ -79,16 +79,26 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+    res.json({ token })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/me', authenticate, async (req, res, next) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT id, username, email, avatar, bio FROM users WHERE id = ?',
+      [req.user.id]
     )
 
-    res.json({
-      token,
-      user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar, bio: user.bio }
-    })
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    res.json(users[0])
   } catch (err) {
     next(err)
   }
@@ -105,9 +115,18 @@ router.put('/profile', authenticate, async (req, res, next) => {
     const updates = []
     const values = []
 
-    if (name) { updates.push('username = ?'); values.push(name) }
-    if (bio !== undefined) { updates.push('bio = ?'); values.push(bio) }
-    if (avatar) { updates.push('avatar = ?'); values.push(avatar) }
+    if (name) {
+      updates.push('username = ?')
+      values.push(name)
+    }
+    if (bio !== undefined) {
+      updates.push('bio = ?')
+      values.push(bio)
+    }
+    if (avatar) {
+      updates.push('avatar = ?')
+      values.push(avatar)
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ message: 'No fields to update' })
@@ -116,7 +135,10 @@ router.put('/profile', authenticate, async (req, res, next) => {
     values.push(req.user.id)
     await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values)
 
-    const [users] = await pool.query('SELECT id, username, email, avatar, bio FROM users WHERE id = ?', [req.user.id])
+    const [users] = await pool.query(
+      'SELECT id, username, email, avatar, bio FROM users WHERE id = ?',
+      [req.user.id]
+    )
     res.json(users[0])
   } catch (err) {
     next(err)

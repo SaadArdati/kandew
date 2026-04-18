@@ -4,7 +4,7 @@ import TeamPanel from '../../components/TeamPanel/TeamPanel'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
 import { getTasksByTeam } from '../../repositories/taskRepository'
 import { getEarnedPetals } from '../../utils/petalUtils'
-import axios from 'axios'
+import api from '../../lib/api'
 import './AccountSettings.css'
 
 export default function AccountSettings() {
@@ -12,7 +12,7 @@ export default function AccountSettings() {
   const { onLogout } = useOutletContext()
   const { teams, activeTeamId, selectTeam } = useTeamViewModel()
 
-  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const [storedUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'))
 
   const [displayName, setDisplayName] = useState(storedUser.username ?? '')
   const [avatarPreview, setAvatarPreview] = useState(storedUser.avatar ?? '')
@@ -29,7 +29,7 @@ export default function AccountSettings() {
         task.columnId === 'done' &&
         (selectedTeamFilter === 'all' || task.teamId === selectedTeamFilter)
     )
-  }, [allTasks, selectedTeamFilter])
+  }, [allTasks, selectedTeamFilter, storedUser.id])
 
   const selectedTeamName =
     selectedTeamFilter === 'all'
@@ -41,7 +41,7 @@ export default function AccountSettings() {
       allTasks
         .filter((task) => task.assigneeUserId === storedUser.id && task.columnId === 'done')
         .reduce((sum, task) => sum + getEarnedPetals(task), 0),
-    [allTasks]
+    [allTasks, storedUser.id]
   )
 
   const selectedTeamPoints = useMemo(
@@ -63,12 +63,9 @@ export default function AccountSettings() {
     event.preventDefault()
     setSaving(true)
     try {
-      const token = localStorage.getItem('token')
-      const res = await axios.put('/api/auth/profile', {
+      const res = await api.put('/auth/profile', {
         name: displayName,
         avatar: avatarPreview,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       })
       const updatedUser = { ...storedUser, username: res.data.username, avatar: res.data.avatar }
       localStorage.setItem('user', JSON.stringify(updatedUser))
@@ -82,8 +79,6 @@ export default function AccountSettings() {
   }
 
   function handleSignOut() {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
     if (onLogout) onLogout()
     navigate('/', { replace: true })
   }
@@ -158,10 +153,14 @@ export default function AccountSettings() {
           <div className="account-card points-card">
             <div className="card-heading">
               <h2>Points</h2>
-              <p>Completed tasks for <strong>{selectedTeamName}</strong> with earned petals.</p>
+              <p>
+                Completed tasks for <strong>{selectedTeamName}</strong> with earned petals.
+              </p>
             </div>
 
-            <div className={`points-summary ${selectedTeamFilter === 'all' ? 'points-summary-single' : ''}`}>
+            <div
+              className={`points-summary ${selectedTeamFilter === 'all' ? 'points-summary-single' : ''}`}
+            >
               <div className="points-box">
                 <span className="points-label">Total Points</span>
                 <strong>{totalPoints}</strong>
@@ -184,7 +183,9 @@ export default function AccountSettings() {
               >
                 <option value="all">All Teams</option>
                 {teams.map((team) => (
-                  <option key={team.id} value={team.id}>{team.name}</option>
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -192,7 +193,8 @@ export default function AccountSettings() {
             {completedTasks.length > 0 ? (
               <div className="points-task-list">
                 {completedTasks.map((task) => {
-                  const teamName = teams.find((team) => team.id === task.teamId)?.name ?? task.teamId
+                  const teamName =
+                    teams.find((team) => team.id === task.teamId)?.name ?? task.teamId
                   const earnedPetals = getEarnedPetals(task)
                   return (
                     <div key={task.id} className="points-task-item">
@@ -202,7 +204,9 @@ export default function AccountSettings() {
                           <span className="task-team-badge">{teamName}</span>
                         </div>
                         <p>{task.description}</p>
-                        <span className={`task-priority-badge priority-${task.priority}`}>{task.priority}</span>
+                        <span className={`task-priority-badge priority-${task.priority}`}>
+                          {task.priority}
+                        </span>
                       </div>
                       <div className="points-task-score">
                         <span>Points</span>

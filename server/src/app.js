@@ -11,6 +11,11 @@ import { swaggerSpec } from './swagger.js'
 import taskRoutes from './routes/tasks.js'
 import commentRoutes from './routes/comments.js'
 
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not set. Configure it in server/.env before starting.')
+  process.exit(1)
+}
+
 const app = express()
 const PORT = process.env.PORT || 3000
 

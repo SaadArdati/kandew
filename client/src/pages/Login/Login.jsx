@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api, { fetchMe } from '../../lib/api'
 
 export default function Login({ onLoginSuccess }) {
   const navigate = useNavigate()
@@ -21,8 +21,9 @@ export default function Login({ onLoginSuccess }) {
 
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/login', { email: email.trim(), password })
-      onLoginSuccess(res.data.token, res.data.user)
+      const { data } = await api.post('/auth/login', { email: email.trim(), password })
+      const user = await fetchMe(data.token)
+      onLoginSuccess(data.token, user)
       navigate('/app')
     } catch (err) {
       setFormError(err.response?.data?.message || 'Invalid email or password.')
@@ -42,7 +43,9 @@ export default function Login({ onLoginSuccess }) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-on-surface">Email</label>
+              <label htmlFor="email" className="text-sm font-medium text-on-surface">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -54,7 +57,9 @@ export default function Login({ onLoginSuccess }) {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-on-surface">Password</label>
+              <label htmlFor="password" className="text-sm font-medium text-on-surface">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
@@ -88,7 +93,9 @@ export default function Login({ onLoginSuccess }) {
 
           <p className="text-center text-sm text-on-surface-variant">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline font-medium">Sign up</Link>
+            <Link to="/register" className="text-primary hover:underline font-medium">
+              Sign up
+            </Link>
           </p>
         </div>
       </div>

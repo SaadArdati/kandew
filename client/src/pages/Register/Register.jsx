@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api, { fetchMe } from '../../lib/api'
 
 export default function Register({ onRegisterSuccess }) {
   const navigate = useNavigate()
@@ -16,7 +16,8 @@ export default function Register({ onRegisterSuccess }) {
     if (pw.length < 8) return 'Password must be at least 8 characters long.'
     if (!/[a-zA-Z]/.test(pw)) return 'Password must contain at least one letter.'
     if (!/\d/.test(pw)) return 'Password must contain at least one number.'
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return 'Password must contain at least one special character.'
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw))
+      return 'Password must contain at least one special character.'
     return null
   }
 
@@ -42,12 +43,13 @@ export default function Register({ onRegisterSuccess }) {
 
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/signup', {
+      const { data } = await api.post('/auth/signup', {
         name: username.trim(),
         email: email.trim(),
         password,
       })
-      onRegisterSuccess(res.data.token, res.data.user)
+      const user = await fetchMe(data.token)
+      onRegisterSuccess(data.token, user)
       navigate('/setup-profile')
     } catch (err) {
       setFormError(err.response?.data?.message || 'Registration failed. Please try again.')
@@ -67,7 +69,9 @@ export default function Register({ onRegisterSuccess }) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-on-surface">Username</label>
+              <label htmlFor="username" className="text-sm font-medium text-on-surface">
+                Username
+              </label>
               <input
                 id="username"
                 type="text"
@@ -79,7 +83,9 @@ export default function Register({ onRegisterSuccess }) {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-on-surface">Email</label>
+              <label htmlFor="email" className="text-sm font-medium text-on-surface">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -91,7 +97,9 @@ export default function Register({ onRegisterSuccess }) {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-on-surface">Password</label>
+              <label htmlFor="password" className="text-sm font-medium text-on-surface">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
@@ -100,11 +108,15 @@ export default function Register({ onRegisterSuccess }) {
                 placeholder="••••••••"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
-              <p className="text-xs text-on-surface-variant">Min 8 characters, include a number and special character</p>
+              <p className="text-xs text-on-surface-variant">
+                Min 8 characters, include a number and special character
+              </p>
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="confirm-password" className="text-sm font-medium text-on-surface">Confirm Password</label>
+              <label htmlFor="confirm-password" className="text-sm font-medium text-on-surface">
+                Confirm Password
+              </label>
               <input
                 id="confirm-password"
                 type="password"
@@ -132,7 +144,9 @@ export default function Register({ onRegisterSuccess }) {
 
           <p className="text-center text-sm text-on-surface-variant">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline font-medium">Log in</Link>
+            <Link to="/login" className="text-primary hover:underline font-medium">
+              Log in
+            </Link>
           </p>
         </div>
       </div>

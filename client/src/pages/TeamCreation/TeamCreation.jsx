@@ -88,9 +88,9 @@ export default function TeamCreation() {
                       setSelectedIcon(url)
                       setUseCustom(false)
                     }}
-                   className={`w-10 h-10 rounded-full overflow-hidden ring-2 transition-all flex-shrink-0 ${!useCustom && selectedIcon === url ? 'ring-primary scale-110' : 'ring-transparent hover:ring-outline'}`}
->
-                   <img src={url} alt="preset icon" className="w-full h-full object-cover" />
+                    className={`w-10 h-10 rounded-full overflow-hidden ring-2 transition-all flex-shrink-0 ${!useCustom && selectedIcon === url ? 'ring-primary scale-110' : 'ring-transparent hover:ring-outline'}`}
+                  >
+                    <img src={url} alt="preset icon" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

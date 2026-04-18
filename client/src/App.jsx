@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
 
 import Layout from './components/Layout/Layout'
@@ -47,46 +47,43 @@ function SetupProfileRoute({ isAuthenticated, needsProfileSetup, children }) {
   return children
 }
 
+function readStoredUser() {
+  try {
+    const raw = localStorage.getItem('user')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'))
-  const [needsProfileSetup, setNeedsProfileSetup] = useState(false)
-  const [registeredUser, setRegisteredUser] = useState(() => {
-    const user = localStorage.getItem('user')
-    return user ? JSON.parse(user) : null
-  })
+  const [user, setUser] = useState(readStoredUser)
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    setIsAuthenticated(!!token)
-  }, [])
+  const isAuthenticated = !!user
+  const needsProfileSetup = isAuthenticated && !user.avatar
 
-  function handleLoginSuccess(token, user) {
+  function handleLoginSuccess(token, nextUser) {
     localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    setIsAuthenticated(true)
-    setNeedsProfileSetup(false)
+    localStorage.setItem('user', JSON.stringify(nextUser))
+    setUser(nextUser)
   }
 
-  function handleRegisterSuccess(token, user) {
+  function handleRegisterSuccess(token, nextUser) {
     localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    setRegisteredUser(user)
-    setIsAuthenticated(true)
-    setNeedsProfileSetup(true)
+    localStorage.setItem('user', JSON.stringify(nextUser))
+    setUser(nextUser)
   }
 
   function handleCompleteProfile(profileData) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const updatedUser = { ...user, ...profileData }
-    localStorage.setItem('user', JSON.stringify(updatedUser))
-    setNeedsProfileSetup(false)
+    const updated = { ...user, ...profileData }
+    localStorage.setItem('user', JSON.stringify(updated))
+    setUser(updated)
   }
 
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    setIsAuthenticated(false)
-    setNeedsProfileSetup(false)
+    setUser(null)
   }
 
   return (
@@ -122,8 +119,11 @@ export default function App() {
           <Route
             path="/setup-profile"
             element={
-              <SetupProfileRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
-                <SetupProfile registeredUser={registeredUser} onCompleteProfile={handleCompleteProfile} />
+              <SetupProfileRoute
+                isAuthenticated={isAuthenticated}
+                needsProfileSetup={needsProfileSetup}
+              >
+                <SetupProfile registeredUser={user} onCompleteProfile={handleCompleteProfile} />
               </SetupProfileRoute>
             }
           />
@@ -137,7 +137,10 @@ export default function App() {
           <Route
             path="/app"
             element={
-              <ProtectedRoute isAuthenticated={isAuthenticated} needsProfileSetup={needsProfileSetup}>
+              <ProtectedRoute
+                isAuthenticated={isAuthenticated}
+                needsProfileSetup={needsProfileSetup}
+              >
                 <Layout onLogout={handleLogout} />
               </ProtectedRoute>
             }
