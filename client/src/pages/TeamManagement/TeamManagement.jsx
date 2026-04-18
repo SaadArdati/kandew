@@ -45,6 +45,7 @@ export default function TeamManagement() {
   const {
     team,
     members,
+    loading,
     inviteEmail,
     setInviteEmail,
     newName,
@@ -68,6 +69,14 @@ export default function TeamManagement() {
   const [petalInput, setPetalInput] = useState(String(petalValue))
   const [petalEditMode, setPetalEditMode] = useState(false)
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-on-surface-variant">
+        Loading team…
+      </div>
+    )
+  }
+
   if (!team) {
     return (
       <div className="flex items-center justify-center h-64 text-on-surface-variant">
@@ -76,21 +85,21 @@ export default function TeamManagement() {
     )
   }
 
-  function handleRename(e) {
+  async function handleRename(e) {
     e.preventDefault()
-    renameTeam(newName)
+    await renameTeam(newName)
     setRenameMode(false)
   }
 
-  function handleIconChange(e) {
+  async function handleIconChange(e) {
     e.preventDefault()
     if (!iconUrl.trim()) return
-    changeIcon(iconUrl.trim())
+    await changeIcon(iconUrl.trim())
     setIconUrl('')
   }
 
-  function handleDelete() {
-    deleteTeam()
+  async function handleDelete() {
+    await deleteTeam()
     navigate('/app')
   }
 

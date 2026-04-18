@@ -23,7 +23,7 @@ export default function TeamCreation() {
 
   const finalIcon = useCustom && customUrl.trim() ? customUrl.trim() : selectedIcon
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) {
       setNameError('Team name is required.')
@@ -34,7 +34,8 @@ export default function TeamCreation() {
       return
     }
     setNameError('')
-    const newTeam = createTeam(name.trim(), finalIcon)
+    const newTeam = await createTeam(name.trim(), finalIcon)
+    if (!newTeam) return
     navigate(`/app/team/${newTeam.id}/manage`)
   }
 

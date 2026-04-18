@@ -1,7 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc'
 
-const PORT = process.env.PORT || 3000
-
 const options = {
   definition: {
     openapi: '3.0.3',
@@ -9,10 +7,11 @@ const options = {
       title: 'Kandew API',
       version: '1.0.0',
       description:
-        'REST API for the Kandew team task board. All endpoints except `POST /api/auth/login` require a bearer JWT.',
+        'REST API for the Kandew team task board. All endpoints require a bearer JWT except ' +
+        '`POST /api/auth/signup`, `POST /api/auth/login`, and `POST /api/auth/forgot-password`. ' +
+        'Obtain a token from `/signup` or `/login`, then call `GET /api/auth/me` to fetch the user profile.',
       contact: { name: 'Kandew' },
     },
-    servers: [{ url: `http://localhost:${PORT}`, description: 'Local development' }],
     tags: [
       { name: 'Auth', description: 'Authentication endpoints' },
       { name: 'Teams', description: 'Team management and membership' },
@@ -36,6 +35,24 @@ const options = {
           properties: { message: { type: 'string' } },
           example: { message: 'Task deleted successfully' },
         },
+        SignupRequest: {
+          type: 'object',
+          required: ['name', 'email', 'password'],
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Username. Stored as `users.username`.',
+              minLength: 1,
+            },
+            email: { type: 'string', format: 'email' },
+            password: {
+              type: 'string',
+              format: 'password',
+              description: 'Min 8 chars; must include a letter, a number, and a special character.',
+            },
+          },
+          example: { name: 'alice', email: 'alice@example.com', password: 'Hunter@2026' },
+        },
         LoginRequest: {
           type: 'object',
           required: ['email', 'password'],
@@ -43,25 +60,51 @@ const options = {
             email: { type: 'string', format: 'email' },
             password: { type: 'string', format: 'password' },
           },
-          example: { email: 'alice@example.com', password: 'hunter2' },
+          example: { email: 'alice@example.com', password: 'Hunter@2026' },
         },
-        LoginResponse: {
+        TokenResponse: {
           type: 'object',
+          required: ['token'],
           properties: {
-            token: { type: 'string', description: 'JWT bearer token' },
-            user: {
-              type: 'object',
-              properties: {
-                id: { type: 'integer' },
-                username: { type: 'string' },
-                email: { type: 'string', format: 'email' },
-              },
+            token: {
+              type: 'string',
+              description: 'JWT bearer token. Payload is `{ id: <user-id> }` with a 7-day expiry.',
             },
           },
-          example: {
-            token: 'eyJhbGciOi...<jwt>',
-            user: { id: 42, username: 'alice', email: 'alice@example.com' },
+          example: { token: 'eyJhbGciOi...<jwt>' },
+        },
+        UserProfile: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            username: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            avatar: { type: 'string', nullable: true },
+            bio: { type: 'string', nullable: true },
           },
+          example: {
+            id: 42,
+            username: 'alice',
+            email: 'alice@example.com',
+            avatar: 'https://picsum.photos/seed/alice/80/80',
+            bio: 'Design sprint lead.',
+          },
+        },
+        ProfileUpdate: {
+          type: 'object',
+          description: 'Any subset of mutable profile fields.',
+          properties: {
+            name: { type: 'string', description: 'New username.' },
+            bio: { type: 'string', nullable: true },
+            avatar: { type: 'string', nullable: true },
+          },
+          example: { name: 'alice', bio: 'Design sprint lead.', avatar: null },
+        },
+        ForgotPasswordRequest: {
+          type: 'object',
+          required: ['email'],
+          properties: { email: { type: 'string', format: 'email' } },
+          example: { email: 'alice@example.com' },
         },
         Team: {
           type: 'object',

@@ -6,6 +6,43 @@ import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Auth
+ *     description: Authentication and account profile
+ */
+
+/**
+ * @openapi
+ * /api/auth/signup:
+ *   post:
+ *     tags: [Auth]
+ *     operationId: signup
+ *     summary: Register a new user and receive a bearer token
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/SignupRequest' }
+ *     responses:
+ *       201:
+ *         description: User created; JWT returned. Client should call `GET /api/auth/me` to fetch the profile.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/TokenResponse' }
+ *       400:
+ *         description: Missing field or password fails complexity checks
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       409:
+ *         description: Email or username already exists
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/signup', async (req, res, next) => {
   try {
     const { name, email, password } = req.body
@@ -58,6 +95,36 @@ router.post('/signup', async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     operationId: login
+ *     summary: Exchange credentials for a bearer token
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/LoginRequest' }
+ *     responses:
+ *       200:
+ *         description: Credentials valid; JWT returned.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/TokenResponse' }
+ *       400:
+ *         description: Missing email or password
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       401:
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body
@@ -87,6 +154,32 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     operationId: getMe
+ *     summary: Get the authenticated user's full profile
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile for the user identified by the bearer token
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/UserProfile' }
+ *       401:
+ *         description: Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Token is valid but the user record no longer exists
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.get('/me', authenticate, async (req, res, next) => {
   try {
     const [users] = await pool.query(
@@ -104,10 +197,67 @@ router.get('/me', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     operationId: logout
+ *     summary: Acknowledge logout (server is stateless; client should discard its token)
+ *     description: |
+ *       Tokens are not revoked server-side — this endpoint exists as a polite handshake.
+ *       Security comes from the client deleting its stored JWT.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Acknowledged
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       401:
+ *         description: Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/logout', authenticate, (req, res) => {
   res.json({ message: 'Logged out successfully' })
 })
 
+/**
+ * @openapi
+ * /api/auth/profile:
+ *   put:
+ *     tags: [Auth]
+ *     operationId: updateProfile
+ *     summary: Update the authenticated user's profile
+ *     description: |
+ *       Any subset of { name, bio, avatar } may be sent. Fields omitted from the body are untouched.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/ProfileUpdate' }
+ *     responses:
+ *       200:
+ *         description: Updated profile
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/UserProfile' }
+ *       400:
+ *         description: Body contained no updatable fields
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       401:
+ *         description: Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.put('/profile', authenticate, async (req, res, next) => {
   try {
     const { name, bio, avatar } = req.body
@@ -145,6 +295,35 @@ router.put('/profile', authenticate, async (req, res, next) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags: [Auth]
+ *     operationId: forgotPassword
+ *     summary: Initiate a password reset flow (stubbed)
+ *     description: |
+ *       Currently returns the same generic acknowledgement whether or not the email matches a
+ *       registered user (to prevent account enumeration). No email is actually sent and no reset
+ *       token is issued — this endpoint is a placeholder pending a real reset flow.
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/ForgotPasswordRequest' }
+ *     responses:
+ *       200:
+ *         description: Generic acknowledgement (does not reveal whether the email is registered)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       400:
+ *         description: Missing email
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
 router.post('/forgot-password', async (req, res, next) => {
   try {
     const { email } = req.body

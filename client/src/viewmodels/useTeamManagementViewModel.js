@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   getTeamById,
   getMembersByTeam,
@@ -11,47 +11,109 @@ import {
   getMemberPetalsByTeam,
 } from '../repositories/taskRepository'
 
+const EMPTY_STATS = { memberCount: 0, activeTasks: 0, petals: 0 }
+
 export default function useTeamManagementViewModel(teamId) {
-  const [team, setTeam] = useState(() => getTeamById(teamId))
-  const [members, setMembers] = useState(() => getMembersByTeam(teamId))
+  const [team, setTeam] = useState(null)
+  const [members, setMembers] = useState([])
+  const [stats, setStats] = useState(EMPTY_STATS)
+  const [memberPetals, setMemberPetals] = useState({})
+  const [loading, setLoading] = useState(true)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [newName, setNewName] = useState(team?.name ?? '')
+  const [newName, setNewName] = useState('')
   const [petalValue, setPetalValue] = useState(1.0)
 
-  const stats = getStatsByTeam(teamId)
-  const memberPetals = getMemberPetalsByTeam(teamId)
+  useEffect(() => {
+    if (!teamId) return undefined
+    let cancelled = false
 
-  function inviteMember() {
+    async function load() {
+      try {
+        setLoading(true)
+        const [t, m, s, p] = await Promise.all([
+          getTeamById(teamId),
+          getMembersByTeam(teamId),
+          getStatsByTeam(teamId),
+          getMemberPetalsByTeam(teamId),
+        ])
+        if (cancelled) return
+        setTeam(t)
+        setMembers(m)
+        setStats(s)
+        setMemberPetals(p)
+        setNewName(t?.name ?? '')
+      } catch (error) {
+        console.error('Failed to load team management data:', error)
+        if (!cancelled) {
+          setTeam(null)
+          setMembers([])
+          setStats(EMPTY_STATS)
+          setMemberPetals({})
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [teamId])
+
+  async function inviteMember() {
     if (!inviteEmail.trim()) return
-    const updated = inviteMemberToTeam(teamId, inviteEmail.trim())
-    setMembers(updated)
-    setInviteEmail('')
+    try {
+      const updated = await inviteMemberToTeam(teamId, inviteEmail.trim())
+      setMembers(updated)
+      setInviteEmail('')
+    } catch (error) {
+      console.error('Failed to invite member:', error)
+    }
   }
 
-  function kickMember(memberId) {
-    const updated = kickMemberFromTeam(teamId, memberId)
-    setMembers(updated)
+  async function kickMember(memberId) {
+    try {
+      const updated = await kickMemberFromTeam(teamId, memberId)
+      setMembers(updated)
+    } catch (error) {
+      console.error('Failed to kick member:', error)
+    }
   }
 
-  function deleteTeam() {
-    deleteTeamById(teamId)
+  async function deleteTeam() {
+    try {
+      await deleteTeamById(teamId)
+    } catch (error) {
+      console.error('Failed to delete team:', error)
+    }
   }
 
-  function renameTeam(name) {
+  async function renameTeam(name) {
     if (!name.trim()) return
-    const updated = renameTeamById(teamId, name.trim())
-    setTeam(updated)
-    setNewName(updated.name)
+    try {
+      const updated = await renameTeamById(teamId, name.trim())
+      setTeam(updated)
+      setNewName(updated.name)
+    } catch (error) {
+      console.error('Failed to rename team:', error)
+    }
   }
 
-  function changeIcon(url) {
-    const updated = updateTeamIcon(teamId, url)
-    setTeam(updated)
+  async function changeIcon(url) {
+    try {
+      const updated = await updateTeamIcon(teamId, url)
+      setTeam(updated)
+    } catch (error) {
+      console.error('Failed to change icon:', error)
+    }
   }
 
   return {
     team,
     members,
+    loading,
     inviteEmail,
     setInviteEmail,
     newName,
