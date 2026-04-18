@@ -88,7 +88,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <BrowserRouter basename="/kandew">
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
 
