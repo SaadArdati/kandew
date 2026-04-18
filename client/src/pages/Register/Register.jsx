@@ -75,6 +75,7 @@ export default function Register({ onRegisterSuccess }) {
               <input
                 id="username"
                 type="text"
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Your username"
@@ -89,6 +90,7 @@ export default function Register({ onRegisterSuccess }) {
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -103,6 +105,7 @@ export default function Register({ onRegisterSuccess }) {
               <input
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -120,6 +123,7 @@ export default function Register({ onRegisterSuccess }) {
               <input
                 id="confirm-password"
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
