@@ -59,6 +59,13 @@ export default function TeamManagement() {
     petalValue,
     setPetalValue,
     memberPetals,
+    actionError,
+    clearActionError,
+    inviting,
+    kickingId,
+    renaming,
+    savingIcon,
+    deleting,
   } = useTeamManagementViewModel(teamId)
 
   const [tab, setTab] = useState('members')
@@ -87,20 +94,25 @@ export default function TeamManagement() {
 
   async function handleRename(e) {
     e.preventDefault()
-    await renameTeam(newName)
-    setRenameMode(false)
+    const ok = await renameTeam(newName)
+    if (ok) setRenameMode(false)
   }
 
   async function handleIconChange(e) {
     e.preventDefault()
     if (!iconUrl.trim()) return
-    await changeIcon(iconUrl.trim())
-    setIconUrl('')
+    const ok = await changeIcon(iconUrl.trim())
+    if (ok) setIconUrl('')
   }
 
   async function handleDelete() {
-    await deleteTeam()
-    navigate('/app')
+    const ok = await deleteTeam()
+    if (ok) navigate('/app')
+  }
+
+  async function handleKick(memberId) {
+    const ok = await kickMember(memberId)
+    if (ok) setKickTarget(null)
   }
 
   function handlePetalValueSave(e) {
@@ -191,13 +203,30 @@ export default function TeamManagement() {
         {['members', 'settings'].map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t)
+              clearActionError()
+            }}
             className={`px-5 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${tab === t ? 'bg-primary text-white shadow' : 'text-on-surface-variant hover:text-on-surface'}`}
           >
             {t}
           </button>
         ))}
       </div>
+
+      {actionError && (
+        <div className="flex items-start justify-between gap-3 bg-secondary/10 border border-secondary/30 text-secondary rounded-xl px-4 py-3">
+          <span className="text-sm">{actionError}</span>
+          <button
+            type="button"
+            onClick={clearActionError}
+            aria-label="Dismiss"
+            className="text-lg leading-none text-secondary hover:opacity-80"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {tab === 'members' && (
         <div className="space-y-4">
@@ -212,15 +241,20 @@ export default function TeamManagement() {
               type="email"
               placeholder="Invite by email…"
               value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
+              onChange={(e) => {
+                setInviteEmail(e.target.value)
+                if (actionError) clearActionError()
+              }}
               required
-              className="flex-1 bg-surface-container border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition"
+              disabled={inviting}
+              className="flex-1 min-w-0 bg-surface-container border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition disabled:opacity-60"
             />
             <button
               type="submit"
-              className="bg-primary hover:bg-primary-container text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors"
+              disabled={inviting}
+              className="bg-primary hover:bg-primary-container text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
             >
-              Invite
+              {inviting ? 'Inviting…' : 'Invite'}
             </button>
           </form>
 
@@ -246,19 +280,20 @@ export default function TeamManagement() {
                   {member.role !== 'owner' &&
                     (kickTarget === member.id ? (
                       <div className="flex gap-2 items-center">
-                        <span className="text-xs text-secondary">Sure?</span>
+                        <span className="text-xs text-secondary">
+                          {kickingId === member.id ? 'Removing…' : 'Sure?'}
+                        </span>
                         <button
-                          onClick={() => {
-                            kickMember(member.id)
-                            setKickTarget(null)
-                          }}
-                          className="text-xs text-secondary font-semibold hover:underline"
+                          onClick={() => handleKick(member.id)}
+                          disabled={kickingId === member.id}
+                          className="text-xs text-secondary font-semibold hover:underline disabled:opacity-60"
                         >
                           Yes
                         </button>
                         <button
                           onClick={() => setKickTarget(null)}
-                          className="text-xs text-on-surface-variant hover:underline"
+                          disabled={kickingId === member.id}
+                          className="text-xs text-on-surface-variant hover:underline disabled:opacity-60"
                         >
                           No
                         </button>
@@ -283,24 +318,27 @@ export default function TeamManagement() {
           <div className="bg-surface-container border border-outline rounded-2xl p-5 space-y-3">
             <h2 className="font-semibold text-on-surface">Team Name</h2>
             {renameMode ? (
-              <form onSubmit={handleRename} className="flex gap-2">
+              <form onSubmit={handleRename} className="flex gap-2 min-w-0">
                 <input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   required
                   minLength={2}
-                  className="flex-1 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
+                  disabled={renaming}
+                  className="flex-1 min-w-0 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition disabled:opacity-60"
                 />
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                  disabled={renaming}
+                  className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
                 >
-                  Save
+                  {renaming ? 'Saving…' : 'Save'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setRenameMode(false)}
-                  className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                  disabled={renaming}
+                  className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors disabled:opacity-60"
                 >
                   Cancel
                 </button>
@@ -323,21 +361,23 @@ export default function TeamManagement() {
 
           <div className="bg-surface-container border border-outline rounded-2xl p-5 space-y-3">
             <h2 className="font-semibold text-on-surface">Team Picture</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <Avatar src={team.icon} name={team.name} size={12} />
-              <form onSubmit={handleIconChange} className="flex gap-2 flex-1">
+              <form onSubmit={handleIconChange} className="flex gap-2 flex-1 min-w-0">
                 <input
                   type="url"
                   placeholder="Paste image URL…"
                   value={iconUrl}
                   onChange={(e) => setIconUrl(e.target.value)}
-                  className="flex-1 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition"
+                  disabled={savingIcon}
+                  className="flex-1 min-w-0 bg-surface border border-outline rounded-xl px-4 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary transition disabled:opacity-60"
                 />
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                  disabled={savingIcon}
+                  className="bg-primary hover:bg-primary-container text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
                 >
-                  Update
+                  {savingIcon ? 'Saving…' : 'Update'}
                 </button>
               </form>
             </div>
@@ -353,13 +393,15 @@ export default function TeamManagement() {
                 <span className="text-sm text-secondary font-medium">Are you absolutely sure?</span>
                 <button
                   onClick={handleDelete}
-                  className="bg-secondary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                  disabled={deleting}
+                  className="bg-secondary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
                 >
-                  Yes, delete
+                  {deleting ? 'Deleting…' : 'Yes, delete'}
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors disabled:opacity-60"
                 >
                   Cancel
                 </button>

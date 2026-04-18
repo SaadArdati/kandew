@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
-  getTeamById,
+  deleteTeamById,
+  getMemberPetalsByTeam,
   getMembersByTeam,
+  getStatsByTeam,
+  getTeamById,
   inviteMemberToTeam,
   kickMemberFromTeam,
-  deleteTeamById,
   renameTeamById,
   updateTeamIcon,
-  getStatsByTeam,
-  getMemberPetalsByTeam,
 } from '../repositories/taskRepository'
 
 const EMPTY_STATS = { memberCount: 0, activeTasks: 0, petals: 0 }
@@ -22,6 +22,12 @@ export default function useTeamManagementViewModel(teamId) {
   const [inviteEmail, setInviteEmail] = useState('')
   const [newName, setNewName] = useState('')
   const [petalValue, setPetalValue] = useState(1.0)
+  const [actionError, setActionError] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [kickingId, setKickingId] = useState(null)
+  const [renaming, setRenaming] = useState(false)
+  const [savingIcon, setSavingIcon] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!teamId) return undefined
@@ -63,51 +69,85 @@ export default function useTeamManagementViewModel(teamId) {
   }, [teamId])
 
   async function inviteMember() {
-    if (!inviteEmail.trim()) return
+    if (!inviteEmail.trim()) return false
+    setActionError('')
+    setInviting(true)
     try {
       const updated = await inviteMemberToTeam(teamId, inviteEmail.trim())
       setMembers(updated)
       setInviteEmail('')
+      return true
     } catch (error) {
-      console.error('Failed to invite member:', error)
+      setActionError(error.message || 'Failed to invite member.')
+      return false
+    } finally {
+      setInviting(false)
     }
   }
 
   async function kickMember(memberId) {
+    setActionError('')
+    setKickingId(memberId)
     try {
       const updated = await kickMemberFromTeam(teamId, memberId)
       setMembers(updated)
+      return true
     } catch (error) {
-      console.error('Failed to kick member:', error)
+      setActionError(error.message || 'Failed to remove member.')
+      return false
+    } finally {
+      setKickingId(null)
     }
   }
 
   async function deleteTeam() {
+    setActionError('')
+    setDeleting(true)
     try {
       await deleteTeamById(teamId)
+      return true
     } catch (error) {
-      console.error('Failed to delete team:', error)
+      setActionError(error.message || 'Failed to delete team.')
+      return false
+    } finally {
+      setDeleting(false)
     }
   }
 
   async function renameTeam(name) {
-    if (!name.trim()) return
+    if (!name.trim()) return false
+    setActionError('')
+    setRenaming(true)
     try {
       const updated = await renameTeamById(teamId, name.trim())
       setTeam(updated)
       setNewName(updated.name)
+      return true
     } catch (error) {
-      console.error('Failed to rename team:', error)
+      setActionError(error.message || 'Failed to rename team.')
+      return false
+    } finally {
+      setRenaming(false)
     }
   }
 
   async function changeIcon(url) {
+    setActionError('')
+    setSavingIcon(true)
     try {
       const updated = await updateTeamIcon(teamId, url)
       setTeam(updated)
+      return true
     } catch (error) {
-      console.error('Failed to change icon:', error)
+      setActionError(error.message || 'Failed to update team picture.')
+      return false
+    } finally {
+      setSavingIcon(false)
     }
+  }
+
+  function clearActionError() {
+    setActionError('')
   }
 
   return {
@@ -127,5 +167,12 @@ export default function useTeamManagementViewModel(teamId) {
     petalValue,
     setPetalValue,
     memberPetals,
+    actionError,
+    clearActionError,
+    inviting,
+    kickingId,
+    renaming,
+    savingIcon,
+    deleting,
   }
 }
