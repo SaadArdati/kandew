@@ -8,6 +8,8 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 
 **Deployed Application:** https://kandew.netlify.app
 
+**API Documentation:** https://kandew.onrender.com/api-docs (Swagger UI)
+
 ## Team Members
 
 | Name         | Pages                                           |
