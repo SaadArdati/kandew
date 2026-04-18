@@ -91,7 +91,7 @@ export default function AccountSettings() {
       setSaveMessage('Failed to save profile.')
     } finally {
       setSaving(false)
-      setTimeout(() => setSaveMessage(''), 2500)
+      setTimeout(() => setSaveMessage(''), 4000)
     }
   }
 

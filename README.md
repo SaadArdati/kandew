@@ -1,12 +1,12 @@
 # KANDEW
 
-A team-based kanban board for managing tasks. Built with React, Tailwind CSS, and React Router.
+A team-based kanban board for managing tasks. Built with React, Tailwind CSS, and React Router on the client, and Node/Express with MySQL on the server.
 
 **Topic:** Task Management / Kanban Board
 
-**Data Entities:** Teams, Tasks, Members, Petals (scoring)
+**Data Entities:** Teams, Tasks, Members, Comments, Petals (scoring)
 
-**Deployed Application:** https://saadardati.github.io/kandew
+**Deployed Application:** https://kandew.netlify.app
 
 ## Team Members
 
@@ -17,14 +17,15 @@ A team-based kanban board for managing tasks. Built with React, Tailwind CSS, an
 | Nour Mardini | Account Settings, Task Details, Task Creation   |
 | Lynn Hamieh  | Login, Register, Forgot Password, Setup Profile |
 
-## Running the Frontend Locally
+## Running the Application Locally
 
 ### 1. Prerequisites
 
 Make sure you have the following installed:
 
-- Node.js (version 18 or 20 recommended)
+- Node.js (version 24 recommended)
 - npm (comes with Node.js)
+- MySQL or MariaDB (XAMPP works for local development)
 
 Check installation:
 
@@ -43,16 +44,37 @@ cd kandew
 ### 3. Install Dependencies
 
 ```bash
-npm install
+npm run install:all
 ```
 
-### 4. Start the Development Server
+This installs dependencies for both the client and the server.
+
+### 4. Set Up the Database
+
+Create a database named `kandew`, then run the schema and seed files from `server/`:
+
+```bash
+source server/schema.sql
+source server/seed.sql
+```
+
+### 5. Configure Environment Variables
+
+Copy the server environment template and fill in your database credentials and a JWT secret:
+
+```bash
+cp server/.env.example server/.env
+```
+
+### 6. Start the Development Server
 
 ```bash
 npm run dev
 ```
 
-### 5. Open the Application
+This runs the client and server together.
+
+### 7. Open the Application
 
 After running the server, you will see a local URL such as:
 
@@ -64,29 +86,32 @@ Open this link in your browser to view the application.
 
 ## Pages
 
-1. **Home** — Kanban board with drag-and-drop, team switching, task creation, and filter bar
-2. **Tasks** — List view of all tasks with search bar and filters (priority, team, status)
-3. **Login** — Email/password login with validation
-4. **Register** — Account registration with validation
-5. **Forgot Password** — Password reset request
-6. **Setup Profile** — Post-registration profile completion with avatar selection
-7. **Account Settings** — User profile, petal points tracking, sign out
-8. **Team Creation** — Create new teams with name and icon
-9. **Team Management** — Manage members, rename team, view stats
+1. **Home**: Kanban board with drag-and-drop, team switching, task creation, and filter bar
+2. **Tasks**: List view of all tasks with search bar and filters (priority, team, status)
+3. **Login**: Email/password login with validation
+4. **Register**: Account registration with validation and password complexity rules
+5. **Forgot Password**: Password reset request
+6. **Setup Profile**: Post-registration profile completion with avatar selection
+7. **Account Settings**: User profile, petal points tracking, sign out, account deletion
+8. **Team Creation**: Create new teams with name and icon
+9. **Team Management**: Manage members, rename team, view stats
 
 ## Features
 
-- Light/dark theme toggle
+- Light/dark/system theme toggle
 - Drag-and-drop task movement between columns
-- Petal scoring system — tasks lose petals as the due date approaches
+- Petal scoring system that makes tasks lose petals as the due date approaches
 - Task creation with assignee, priority, due date, and petal count
+- Comments on tasks
 - Team sidebar with created/member sections
 - Member avatar bubble filters on the kanban board
-- Responsive design — works on mobile, tablet, and desktop
+- Responsive design that works on mobile, tablet, and desktop
 - Form validation on all input forms
+- Password complexity enforcement on registration
 - Modals for task details and task creation
 - Due date alerts for tasks nearing their deadline
-- Role-based access — only team creators can add tasks
+- Role-based access so only team creators can add tasks
+- Account deletion with password confirmation
 
 ## Screenshots
 
@@ -135,9 +160,12 @@ Open this link in your browser to view the application.
 - Built the Home page with the kanban board, drag-and-drop, and team switching
 - Built the Tasks list page with search bar and filters (priority, team, status)
 - Added the kanban filter bar with member avatar bubbles and search
-- Added the ThemeContext for light/dark mode with localStorage persistence
+- Added the ThemeContext for light/dark/system mode with localStorage persistence
 - Made the app responsive for mobile and tablet
 - Designed the color scheme and CSS custom properties
+- Connected the client to the Express API and replaced the localStorage auth stubs with real JWT
+- Added the DataProvider context that caches teams, tasks, and members so views do not reload between navigations
+- Deployed the client to Netlify, the server to Render, and the database to TiDB Cloud
 
 ### Leen Nassar
 
@@ -145,18 +173,20 @@ Open this link in your browser to view the application.
 - Built the Team Management page with members tab, settings tab, and danger zone
 - Implemented invite/kick member functionality
 - Added team rename, icon change, and delete with confirmation
+- Wired the initial login and register flow against the real backend
 
 ### Nour Mardini
 
 - Built the Task Details dialog popup showing full task info when a card is clicked
 - Built the Task Creation dialog with name, description, assignee, priority, due date, and petal count
-- Designed and implemented the petal-based scoring system:
+- Added comments on tasks inside the Task Details dialog
+- Designed and implemented the petal-based scoring system (client and server):
   - Each task starts with 0-5 petals assigned by the team creator
   - Petals decrease linearly over time from creation to due date
   - When moved to Review, petals freeze at their current value
   - If moved back, petal countdown resumes
   - When moved to Done, remaining petals are awarded as points
-- Built the Account Settings page with profile editing and points tracking
+- Built the Account Settings page with profile editing, points tracking, and account deletion
 - Updated the team sidebar to show user-specific teams (created vs member)
 - Added the due date alert system that highlights tasks nearing their deadline
 - Wired the auth flow (login, register, setup profile) with route guards
@@ -165,52 +195,33 @@ Open this link in your browser to view the application.
 ### Lynn Hamieh
 
 - Built the Login page with email and password validation
-- Built the Register page with username, email, password, and confirm password validation
+- Built the Register page with username, email, password, and confirm password validation (with complexity rules)
 - Built the Forgot Password page with email validation and confirmation state
-- Built the Setup Profile page with name, bio, and avatar preset selection
+- Built the Setup Profile page with name, bio, and avatar preset selection, persisted to the server after signup
 
-## Use of Mock Data
+## Repository Pattern
 
-This project uses **mock data** to simulate backend interactions and enable full functionality without requiring a real server or database.
+The project uses a repository pattern to separate data access from the rest of the application. The app is now wired to a real backend, but the repository split is kept so the client can switch between live HTTP calls and local mock data with minimal changes.
 
-### How Mock Data is Used
+### How the Repository Layer Works
 
-- All application data (users, teams, tasks, memberships) is stored in local files (e.g., `mockData.js`).
-- These files act as a **temporary data source**, similar to what a backend API would normally provide.
-- The application reads from and writes to this mock data through a **repository layer** (e.g., `taskRepository.js`), which mimics API calls.
+- `src/repositories/liveTaskRepository.js` makes real HTTP calls to the Express API via axios.
+- `src/repositories/mockTaskRepository.js` stores data in memory, seeded from `src/data/mockData.js`, and returns Promises to match the live interface.
+- `src/repositories/taskRepository.js` re-exports from one of the above. The rest of the app only imports from this file.
 
-### Simulating User Interactions
+### Switching Between Live and Mock
 
-Mock data is used to simulate real interactions such as:
+To develop offline or run tests without a backend, change the import in `taskRepository.js` to point at `mockTaskRepository.js`. All repository functions are async, so the rest of the application does not change.
 
-- Creating tasks
-- Updating task status (drag-and-drop between columns)
-- Assigning users to tasks
-- Tracking task progress and points (petals system)
-- Filtering tasks and calculating statistics in the Account Settings page
+### What the Backend Provides
 
-All updates are handled in memory, meaning:
+With the backend in place:
 
-- Changes are immediately reflected in the UI
-- No actual network requests are made
+- Data is persistent, so signing out and back in preserves your teams, tasks, and points
+- Authentication is real (JWT), with password hashing on the server
+- Multiple users can work in the same team, with changes visible after a reload
 
-### Limitations
-
-- Data is **not persistent** — refreshing the page resets all changes
-- There is no real authentication or database storage
-- Multi-user interaction is simulated rather than real
-
-### Purpose
-
-Using mock data allows:
-
-- Faster development and testing
-- Clear separation between frontend and backend logic
-- Easy transition to a real backend in the future
-
-All data is stored in local React state using mock arrays in `src/data/mockData.js`. The app simulates CRUD operations (
-create, read, update, delete) through a repository pattern in `src/repositories/`.
-The current structure (repository + mock data) is designed so that it can later be replaced with real API calls with minimal changes to the rest of the application.
+The repository pattern is designed so that either the live or the mock source can be used without touching the viewmodels or views.
 
 ## Tech Stack
 
@@ -218,4 +229,7 @@ The current structure (repository + mock data) is designed so that it can later 
 - React Router 7
 - Tailwind CSS 4
 - Vite 7
+- Node.js 24 + Express 5
+- MySQL (MariaDB locally, TiDB Cloud in production)
+- JWT authentication with bcrypt password hashing
 - JavaScript (ES6+)

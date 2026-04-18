@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../../lib/api'
 
 const AVATAR_PRESETS = [
   'https://picsum.photos/seed/profile1/80/80',
@@ -16,17 +17,31 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
   const [name, setName] = useState(registeredUser?.username ?? '')
   const [bio, setBio] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[0])
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-
-    onCompleteProfile({
-      name,
-      bio,
-      avatar: selectedAvatar,
-    })
-
-    navigate('/app')
+    setError('')
+    setSaving(true)
+    try {
+      const { data } = await api.put('/auth/profile', {
+        name,
+        bio,
+        avatar: selectedAvatar,
+      })
+      onCompleteProfile({
+        name: data.username,
+        username: data.username,
+        bio: data.bio,
+        avatar: data.avatar,
+      })
+      navigate('/app')
+    } catch (err) {
+      setError(err.message || 'Failed to save profile.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -58,7 +73,6 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
                 type="text"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Your name"
                 className="w-full bg-surface border border-outline rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
             </div>
@@ -98,11 +112,18 @@ export default function SetupProfile({ registeredUser, onCompleteProfile }) {
               </div>
             </div>
 
+            {error && (
+              <p className="text-xs text-secondary bg-secondary/10 border border-secondary/30 rounded-xl px-4 py-2">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold"
+              disabled={saving}
+              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
             >
-              Finish Setup
+              {saving ? 'Saving…' : 'Finish Setup'}
             </button>
           </form>
         </div>

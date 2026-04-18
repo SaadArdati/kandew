@@ -33,8 +33,8 @@
 }
 
 .task-dialog-icon-btn {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: none;
   border-radius: 9999px;
   background: transparent;
@@ -55,8 +55,8 @@
 }
 
 .task-dialog-close {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: none;
   border-radius: 9999px;
   background: transparent;
@@ -542,6 +542,11 @@
   .task-dialog {
     padding: 1.1rem;
     border-radius: 14px;
+    /* Stacked single-column layout — inner panes no longer own scroll, so the
+       dialog itself must scroll instead. */
+    height: auto;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
   }
 
   .task-dialog-title {
@@ -567,6 +572,7 @@
   }
 
   .task-dialog-comment-list {
-    max-height: 28vh;
+    max-height: none;
+    overflow-y: visible;
   }
 }

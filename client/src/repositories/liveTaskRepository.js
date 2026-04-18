@@ -192,7 +192,9 @@ export async function deleteComment(commentId) {
 
 export async function createTeam(name, icon) {
   const { data } = await api.post('/teams', { name, icon })
-  return mapTeam(data)
+  // The POST response doesn't include a join against memberships, so
+  // current_user_role is absent. The caller is always the owner.
+  return { ...mapTeam(data), currentUserRole: 'owner' }
 }
 
 export async function renameTeamById(teamId, newName) {

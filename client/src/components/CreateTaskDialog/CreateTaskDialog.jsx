@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import useFocusTrap from '../../lib/useFocusTrap'
 import './CreateTaskDialog.css'
 
 const PRIORITY_OPTIONS = ['high', 'medium', 'low']
@@ -56,6 +57,9 @@ export default function CreateTaskDialog({
   mode = 'create',
   initialTask = null,
 }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(open, dialogRef)
+
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [assigneeUserId, setAssigneeUserId] = useState('')
@@ -182,6 +186,7 @@ export default function CreateTaskDialog({
   return (
     <div className="create-task-overlay" onClick={onClose} role="presentation">
       <div
+        ref={dialogRef}
         className="create-task-dialog"
         onClick={(event) => event.stopPropagation()}
         role="dialog"

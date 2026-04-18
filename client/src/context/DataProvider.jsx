@@ -52,6 +52,7 @@ export function DataProvider({ children }) {
 
   const addTeamToCache = useCallback((team) => {
     setTeams((prev) => [...prev, team])
+    setActiveTeamId((prev) => prev ?? team.id)
   }, [])
 
   const updateTeamInCache = useCallback((team) => {

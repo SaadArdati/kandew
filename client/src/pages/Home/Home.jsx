@@ -30,6 +30,7 @@ export default function Home() {
   const [selectedMembers, setSelectedMembers] = useState([])
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [comments, setComments] = useState([])
+  const [scrollTarget, setScrollTarget] = useState(null)
 
   const { members: teamMembers } = useTeamMembers(activeTeamId)
 
@@ -196,6 +197,8 @@ export default function Home() {
           onDragEnd={board.handleDragEnd}
           celebratingCols={board.celebratingCols}
           victoryTaskIds={board.victoryTaskIds}
+          actionError={board.actionError}
+          onClearActionError={board.clearActionError}
           onCardClick={handleOpenTask}
           canManageTeam={canManageActiveTeam}
           onManageTeam={handleManageTeam}
@@ -209,6 +212,7 @@ export default function Home() {
           onToggleMember={toggleMember}
           priorityFilter={priorityFilter}
           onPriorityChange={setPriorityFilter}
+          scrollTarget={scrollTarget}
         />
       </div>
 
@@ -223,6 +227,7 @@ export default function Home() {
         onMoveTask={(targetColumnId) => {
           if (!selectedTask) return
           board.handleMoveTask(selectedTask.id, targetColumnId)
+          setScrollTarget({ columnId: targetColumnId, nonce: Date.now() })
           setSelectedTask(null)
         }}
         comments={comments}

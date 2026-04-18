@@ -49,6 +49,25 @@ button,
   cursor: pointer;
 }
 
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* Subtle press feedback. The kanban card has its own transform for dragging. */
+button:not(:disabled):not(.kanban-card):active,
+[role='button']:not([aria-disabled='true']):not(.kanban-card):active {
+  transform: scale(0.985);
+  transition: transform 100ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active,
+  [role='button']:active {
+    transform: none;
+  }
+}
+
 /* Smooth scrollbar tinting */
 ::-webkit-scrollbar {
   width: 8px;

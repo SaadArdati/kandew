@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import useFocusTrap from '../../lib/useFocusTrap'
 import './TaskDetailsDialog.css'
 import {
   buildPetalSlots,
@@ -42,6 +43,9 @@ export default function TaskDetailsDialog({
   onUpdateComment,
   onDeleteComment,
 }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(!!task, dialogRef)
+
   useEffect(() => {
     if (!task) return
 
@@ -124,6 +128,7 @@ export default function TaskDetailsDialog({
   return (
     <div className="task-dialog-overlay" onClick={onClose} role="presentation">
       <div
+        ref={dialogRef}
         className="task-dialog"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
@@ -305,12 +310,17 @@ export default function TaskDetailsDialog({
                             <div className="task-dialog-comment-actions">
                               {!isEditing && (
                                 <>
-                                  <button type="button" onClick={() => startEditing(comment)}>
+                                  <button
+                                    type="button"
+                                    onClick={() => startEditing(comment)}
+                                    aria-label={`Edit comment by ${comment.authorName}`}
+                                  >
                                     Edit
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => onDeleteComment?.(comment.id)}
+                                    aria-label={`Delete comment by ${comment.authorName}`}
                                   >
                                     Delete
                                   </button>

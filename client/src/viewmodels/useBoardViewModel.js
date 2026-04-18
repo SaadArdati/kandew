@@ -10,7 +10,14 @@ import { normalizeTask, transitionTaskForColumn } from '../utils/petalUtils'
 import { useTeamTasks } from '../context/useData'
 
 export default function useBoardViewModel(activeTeamId) {
-  const { tasks, loading: loadingTasks, setTasks } = useTeamTasks(activeTeamId)
+  const {
+    tasks,
+    loading: loadingTasks,
+    setTasks,
+    refresh: refreshTasks,
+  } = useTeamTasks(activeTeamId)
+  const [actionError, setActionError] = useState('')
+  const clearActionError = useCallback(() => setActionError(''), [])
 
   const [draggedTaskId, setDraggedTaskId] = useState(null)
   const [dragOverCol, setDragOverCol] = useState(null)
@@ -45,6 +52,24 @@ export default function useBoardViewModel(activeTeamId) {
       tasks: tasks.filter((task) => task.columnId === column.id),
     }))
   }, [tasks, columns])
+
+  // victoryTaskIds lives for ~4s after a task reaches the last column. But
+  // React remounts cards when they move between columns, and a fresh mount
+  // re-runs the victory effect — so if a task enters "done", celebrates, then
+  // moves back out within the 4s window, the card would re-animate in the
+  // wrong column. Filter down to only tasks that are currently in the last
+  // column so that can't happen.
+  const activeVictoryTaskIds = useMemo(() => {
+    if (victoryTaskIds.size === 0 || columns.length === 0) return victoryTaskIds
+    const lastColumnId = columns[columns.length - 1].id
+    const filtered = new Set()
+    for (const task of tasks) {
+      if (task.columnId === lastColumnId && victoryTaskIds.has(task.id)) {
+        filtered.add(task.id)
+      }
+    }
+    return filtered
+  }, [tasks, columns, victoryTaskIds])
 
   const checkCelebrations = useCallback(
     (prevTasks, nextTasks) => {
@@ -162,7 +187,11 @@ export default function useBoardViewModel(activeTeamId) {
       saveTaskMove(draggedTaskId, {
         columnId,
         sortOrder: insertionIndex,
-      }).catch((error) => console.error('Failed to save task move:', error))
+      }).catch((error) => {
+        console.error('Failed to save task move:', error)
+        setActionError(error.message || 'Failed to move task. Refreshing the board.')
+        refreshTasks()
+      })
       checkCelebrations(prevTasks, newTasks)
       return newTasks
     })
@@ -190,27 +219,34 @@ export default function useBoardViewModel(activeTeamId) {
         .map((t) => (t.id === taskId ? movedTask : t))
         .map(normalizeTask)
 
-      saveTaskMove(taskId, { columnId: targetColumnId }).catch((error) =>
+      saveTaskMove(taskId, { columnId: targetColumnId }).catch((error) => {
         console.error('Failed to save task move:', error)
-      )
+        setActionError(error.message || 'Failed to move task. Refreshing the board.')
+        refreshTasks()
+      })
       checkCelebrations(prevTasks, newTasks)
       return newTasks
     })
   }
 
   async function handleCreateTask(taskData) {
-    const createdTask = await addTask({
-      title: taskData.title,
-      description: taskData.description,
-      priority: taskData.priority,
-      columnId: taskData.columnId || firstColumnId,
-      teamId: taskData.teamId || activeTeamId,
-      assigneeUserId: taskData.assigneeUserId,
-      dueDate: taskData.dueDate,
-      maxPetals: taskData.maxPetals,
-    })
-
-    setTasks((previousTasks) => [...previousTasks, createdTask])
+    try {
+      const createdTask = await addTask({
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        columnId: taskData.columnId || firstColumnId,
+        teamId: taskData.teamId || activeTeamId,
+        assigneeUserId: taskData.assigneeUserId,
+        dueDate: taskData.dueDate,
+        maxPetals: taskData.maxPetals,
+      })
+      setTasks((previousTasks) => [...previousTasks, createdTask])
+    } catch (error) {
+      console.error('Failed to create task:', error)
+      setActionError(error.message || 'Failed to create task.')
+      throw error
+    }
   }
 
   async function handleUpdateTask(taskId, updates) {
@@ -225,12 +261,20 @@ export default function useBoardViewModel(activeTeamId) {
       await updateTask(taskId, updates)
     } catch (error) {
       console.error('Failed to update task:', error)
+      setActionError(error.message || 'Failed to update task. Refreshing the board.')
+      refreshTasks()
     }
   }
 
   async function handleDeleteTask(taskId) {
-    await deleteTask(taskId)
-    setTasks((previousTasks) => previousTasks.filter((task) => task.id !== taskId))
+    try {
+      await deleteTask(taskId)
+      setTasks((previousTasks) => previousTasks.filter((task) => task.id !== taskId))
+    } catch (error) {
+      console.error('Failed to delete task:', error)
+      setActionError(error.message || 'Failed to delete task.')
+      throw error
+    }
   }
 
   return {
@@ -241,7 +285,9 @@ export default function useBoardViewModel(activeTeamId) {
     dragOverCol,
     dropIndex,
     celebratingCols,
-    victoryTaskIds,
+    victoryTaskIds: activeVictoryTaskIds,
+    actionError,
+    clearActionError,
     handleDragStart,
     handleColumnDragOver,
     handleDragLeave,

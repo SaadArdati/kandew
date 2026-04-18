@@ -28,43 +28,74 @@ export default function KanbanBoard({
   onToggleMember,
   priorityFilter = 'all',
   onPriorityChange,
+  actionError = '',
+  onClearActionError,
+  scrollTarget = null,
 }) {
   const boardRef = useRef(null)
   const [activeColIndex, setActiveColIndex] = useState(0)
 
-  // Track which column is visible via IntersectionObserver
+  // Track active column by picking whichever column's center sits closest to
+  // the board's center. More reliable than IntersectionObserver thresholds
+  // when columns have different snap-align values across breakpoints.
   useEffect(() => {
     const board = boardRef.current
     if (!board) return
 
-    const cols = board.querySelectorAll('.kanban-column')
-    if (cols.length === 0) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-            const idx = [...cols].indexOf(entry.target)
-            if (idx !== -1) setActiveColIndex(idx)
-          }
+    function updateActive() {
+      const cols = board.querySelectorAll('.kanban-column')
+      if (cols.length === 0) return
+      const boardRect = board.getBoundingClientRect()
+      const viewportCenter = boardRect.left + boardRect.width / 2
+      let bestIdx = 0
+      let bestDist = Infinity
+      cols.forEach((col, idx) => {
+        const colRect = col.getBoundingClientRect()
+        const colCenter = colRect.left + colRect.width / 2
+        const dist = Math.abs(colCenter - viewportCenter)
+        if (dist < bestDist) {
+          bestDist = dist
+          bestIdx = idx
         }
-      },
-      { root: board, threshold: 0.5 }
-    )
+      })
+      setActiveColIndex(bestIdx)
+    }
 
-    cols.forEach((col) => observer.observe(col))
-    return () => observer.disconnect()
+    updateActive()
+    board.addEventListener('scroll', updateActive, { passive: true })
+    window.addEventListener('resize', updateActive)
+    return () => {
+      board.removeEventListener('scroll', updateActive)
+      window.removeEventListener('resize', updateActive)
+    }
   }, [tasksByColumn])
 
-  const scrollToColumn = useCallback((index) => {
+  const scrollToColumn = useCallback((index, behavior = 'smooth') => {
     const board = boardRef.current
     if (!board) return
-
     const cols = board.querySelectorAll('.kanban-column')
-    if (cols[index]) {
-      cols[index].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
-    }
+    const col = cols[index]
+    if (!col) return
+    // Center the column inside the board viewport, manually clamped to the
+    // valid scroll range. scrollIntoView's inline:'start'/'center' disagrees
+    // with scroll-snap-align across our breakpoints, so we compute it here.
+    const boardRect = board.getBoundingClientRect()
+    const colRect = col.getBoundingClientRect()
+    const delta = colRect.left + colRect.width / 2 - (boardRect.left + boardRect.width / 2)
+    const maxScroll = board.scrollWidth - board.clientWidth
+    const targetLeft = Math.max(0, Math.min(maxScroll, board.scrollLeft + delta))
+    board.scrollTo({ left: targetLeft, behavior })
   }, [])
+
+  // When the parent signals a programmatic move (e.g. user moved a card from
+  // the details dialog), jump-snap to the destination column so they can see
+  // where the card landed. Using 'auto' for an instant snap.
+  useEffect(() => {
+    if (!scrollTarget) return
+    const columnIndex = tasksByColumn.findIndex((col) => col.id === scrollTarget.columnId)
+    if (columnIndex === -1) return
+    scrollToColumn(columnIndex, 'auto')
+  }, [scrollTarget, tasksByColumn, scrollToColumn])
 
   return (
     <div className="kanban-board-wrapper">
@@ -125,6 +156,7 @@ export default function KanbanBoard({
                       onClick={() => onToggleMember(member.userId)}
                       title={member.name}
                       aria-pressed={isSelected}
+                      data-user-id={member.userId}
                     >
                       <img src={member.avatar} alt={member.name} />
                     </button>
@@ -152,6 +184,20 @@ export default function KanbanBoard({
           </button>
         ))}
       </div>
+
+      {actionError && (
+        <div className="board-action-error" role="alert">
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={onClearActionError}
+            aria-label="Dismiss error"
+            className="board-action-error-dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="kanban-board" ref={boardRef} onDragEnd={onDragEnd}>
         {tasksByColumn.map((column, columnIndex) => {
@@ -189,10 +235,29 @@ export default function KanbanBoard({
                       </span>
                       <span className="column-celebrate-text">All clear!</span>
                     </div>
-                  ) : (
+                  ) : columnIndex === 0 && canCreateTasks ? (
+                    <button
+                      type="button"
+                      onClick={onOpenCreateTask}
+                      className="column-empty column-empty-cta"
+                    >
+                      <span className="column-empty-icon">🌱</span>
+                      <span className="column-empty-title">Plant your first task</span>
+                      <span className="column-empty-hint">
+                        Click here or the + button above to create one.
+                      </span>
+                    </button>
+                  ) : columnIndex === 0 ? (
                     <p className="column-empty">
                       <span className="column-empty-icon">🌱</span>
-                      Ready to grow
+                      <span className="column-empty-title">No tasks yet</span>
+                      <span className="column-empty-hint">
+                        A team owner will seed the board soon.
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="column-empty column-empty-subtle" aria-hidden="true">
+                      —
                     </p>
                   ))}
 
