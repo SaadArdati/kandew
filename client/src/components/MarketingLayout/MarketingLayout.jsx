@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { useTheme } from '../../context/useTheme'
 
 export default function MarketingLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -219,12 +220,72 @@ function MarketingFooter() {
             ]}
           />
         </div>
-        <div className="mt-8 pt-6 border-t border-outline/80 flex items-center justify-between max-sm:mt-6 max-sm:pt-5">
+        <div className="mt-8 pt-6 border-t border-outline/80 flex items-center justify-between gap-3 max-sm:mt-6 max-sm:pt-5">
           <span className="text-sm font-bold text-primary">Kandew</span>
-          <span className="text-xs text-on-surface-variant">&copy; {year}</span>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <span className="text-xs text-on-surface-variant">&copy; {year}</span>
+          </div>
         </div>
       </div>
     </footer>
+  )
+}
+
+const THEME_MODES = ['light', 'dark', 'system']
+const THEME_LABELS = { light: 'Light', dark: 'Dark', system: 'System' }
+
+function ThemeToggle() {
+  const { mode, setMode } = useTheme()
+  const currentIndex = THEME_MODES.indexOf(mode)
+  const nextMode = THEME_MODES[(currentIndex + 1) % THEME_MODES.length]
+
+  return (
+    <button
+      type="button"
+      onClick={() => setMode(nextMode)}
+      aria-label={`Theme: ${THEME_LABELS[mode]}. Switch to ${THEME_LABELS[nextMode]}.`}
+      title={`Theme: ${THEME_LABELS[mode]}`}
+      className="inline-flex items-center gap-1.5 text-xs font-medium text-on-surface-variant hover:text-primary transition-colors px-2 py-1 rounded-md focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+    >
+      <ThemeIcon mode={mode} />
+      <span className="max-sm:hidden">{THEME_LABELS[mode]}</span>
+    </button>
+  )
+}
+
+function ThemeIcon({ mode }) {
+  const common = {
+    width: 14,
+    height: 14,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
+  if (mode === 'light') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+    )
+  }
+  if (mode === 'dark') {
+    return (
+      <svg {...common}>
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
   )
 }
 
