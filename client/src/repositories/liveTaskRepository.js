@@ -1,6 +1,5 @@
+import api from '../lib/api'
 import { normalizeTask } from '../utils/petalUtils'
-
-const API_BASE = 'http://localhost:3000/api'
 
 const STATIC_COLUMNS = [
   { id: 'todo', title: 'To Do' },
@@ -30,35 +29,6 @@ function buildQueryString(filters) {
 
   const query = params.toString()
   return query ? `?${query}` : ''
-}
-
-async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers ?? {}),
-    },
-    ...options,
-  })
-
-  if (!response.ok) {
-    let message = 'Request failed'
-
-    try {
-      const data = await response.json()
-      message = data.error || data.message || message
-    } catch {
-      // ignore parse failure
-    }
-
-    throw new Error(message)
-  }
-
-  if (response.status === 204) {
-    return null
-  }
-
-  return response.json()
 }
 
 function mapTeam(team) {
@@ -123,187 +93,145 @@ function mapComment(comment) {
 }
 
 export async function getTeams() {
-  const teams = await request('/teams')
-  return teams.map(mapTeam)
+  const { data } = await api.get('/teams')
+  return data.map(mapTeam)
 }
 
 export async function getTeamById(teamId) {
-  const team = await request(`/teams/${teamId}`)
-  return mapTeam(team)
+  const { data } = await api.get(`/teams/${teamId}`)
+  return mapTeam(data)
 }
 
 export function getColumnsByTeam(teamId) {
-  return STATIC_COLUMNS.map((column) => ({
-    ...column,
-    teamId,
-  }))
+  return STATIC_COLUMNS.map((column) => ({ ...column, teamId }))
 }
 
 export async function getMembersByTeam(teamId) {
-  const members = await request(`/teams/${teamId}/members`)
-  return members.map((member) => mapMember(member, teamId))
+  const { data } = await api.get(`/teams/${teamId}/members`)
+  return data.map((member) => mapMember(member, teamId))
 }
 
 export async function getTasksByTeam(teamId, filters) {
-  const tasks = await request(`/teams/${teamId}/tasks${buildQueryString(filters)}`)
-  return tasks.map(mapTask)
+  const { data } = await api.get(`/teams/${teamId}/tasks${buildQueryString(filters)}`)
+  return data.map(mapTask)
 }
 
 export async function getMyTasks(filters) {
-  const tasks = await request(`/teams/tasks/mine${buildQueryString(filters)}`)
-  return tasks.map((task) => ({
+  const { data } = await api.get(`/teams/tasks/mine${buildQueryString(filters)}`)
+  return data.map((task) => ({
     ...mapTask(task),
     teamName: task.team_name ?? '',
   }))
 }
 
 export async function addTask(task) {
-  const created = await request(`/teams/${task.teamId}/tasks`, {
-    method: 'POST',
-    body: JSON.stringify({
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      columnId: task.columnId,
-      assigneeUserId: task.assigneeUserId,
-      maxPetals: task.maxPetals,
-      dueDate: task.dueDate,
-    }),
+  const { data } = await api.post(`/teams/${task.teamId}/tasks`, {
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+    columnId: task.columnId,
+    assigneeUserId: task.assigneeUserId,
+    maxPetals: task.maxPetals,
+    dueDate: task.dueDate,
   })
-
-  return mapTask(created)
+  return mapTask(data)
 }
 
 export async function saveTaskMove(taskId, updates) {
-  const updated = await request(`/teams/task/${taskId}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      columnId: updates.columnId,
-      sortOrder: updates.sortOrder,
-      reviewEnteredAt: updates.reviewEnteredAt,
-      frozenPetalsAtReview: updates.frozenPetalsAtReview,
-      completedAt: updates.completedAt,
-      earnedPetals: updates.earnedPetals,
-    }),
+  const { data } = await api.put(`/teams/task/${taskId}`, {
+    columnId: updates.columnId,
+    sortOrder: updates.sortOrder,
+    reviewEnteredAt: updates.reviewEnteredAt,
+    frozenPetalsAtReview: updates.frozenPetalsAtReview,
+    completedAt: updates.completedAt,
+    earnedPetals: updates.earnedPetals,
   })
-
-  return mapTask(updated)
+  return mapTask(data)
 }
 
 export async function updateTask(taskId, updates) {
-  const updated = await request(`/teams/task/${taskId}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      title: updates.title,
-      description: updates.description,
-      priority: updates.priority,
-      columnId: updates.columnId,
-      assigneeUserId: updates.assigneeUserId,
-      maxPetals: updates.maxPetals,
-      dueDate: updates.dueDate,
-      sortOrder: updates.sortOrder,
-      reviewEnteredAt: updates.reviewEnteredAt,
-      frozenPetalsAtReview: updates.frozenPetalsAtReview,
-      completedAt: updates.completedAt,
-      earnedPetals: updates.earnedPetals,
-    }),
+  const { data } = await api.put(`/teams/task/${taskId}`, {
+    title: updates.title,
+    description: updates.description,
+    priority: updates.priority,
+    columnId: updates.columnId,
+    assigneeUserId: updates.assigneeUserId,
+    maxPetals: updates.maxPetals,
+    dueDate: updates.dueDate,
+    sortOrder: updates.sortOrder,
+    reviewEnteredAt: updates.reviewEnteredAt,
+    frozenPetalsAtReview: updates.frozenPetalsAtReview,
+    completedAt: updates.completedAt,
+    earnedPetals: updates.earnedPetals,
   })
-
-  return mapTask(updated)
+  return mapTask(data)
 }
 
 export async function deleteTask(taskId) {
-  return request(`/teams/task/${taskId}`, {
-    method: 'DELETE',
-  })
+  await api.delete(`/teams/task/${taskId}`)
 }
 
 export async function getCommentsByTask(taskId) {
-  const comments = await request(`/tasks/${taskId}/comments`)
-  return comments.map(mapComment)
+  const { data } = await api.get(`/tasks/${taskId}/comments`)
+  return data.map(mapComment)
 }
 
 export async function addComment(taskId, body) {
-  const created = await request(`/tasks/${taskId}/comments`, {
-    method: 'POST',
-    body: JSON.stringify({ body }),
-  })
-
-  return mapComment(created)
+  const { data } = await api.post(`/tasks/${taskId}/comments`, { body })
+  return mapComment(data)
 }
 
 export async function updateComment(commentId, body) {
-  const updated = await request(`/comments/${commentId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ body }),
-  })
-
-  return mapComment(updated)
+  const { data } = await api.put(`/comments/${commentId}`, { body })
+  return mapComment(data)
 }
 
 export async function deleteComment(commentId) {
-  return request(`/comments/${commentId}`, {
-    method: 'DELETE',
-  })
+  await api.delete(`/comments/${commentId}`)
 }
+
 export async function createTeam(name, icon) {
-  const team = await request('/teams', {
-    method: 'POST',
-    body: JSON.stringify({ name, icon }),
-  })
-  return mapTeam(team)
+  const { data } = await api.post('/teams', { name, icon })
+  return mapTeam(data)
 }
 
 export async function renameTeamById(teamId, newName) {
-  const team = await request(`/teams/${teamId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ name: newName }),
-  })
-  return mapTeam(team)
+  const { data } = await api.put(`/teams/${teamId}`, { name: newName })
+  return mapTeam(data)
 }
 
 export async function updateTeamIcon(teamId, iconUrl) {
-  const team = await request(`/teams/${teamId}`, {
-    method: 'PUT',
-    body: JSON.stringify({ icon: iconUrl }),
-  })
-  return mapTeam(team)
+  const { data } = await api.put(`/teams/${teamId}`, { icon: iconUrl })
+  return mapTeam(data)
 }
 
 export async function deleteTeamById(teamId) {
-  return request(`/teams/${teamId}`, {
-    method: 'DELETE',
-  })
+  await api.delete(`/teams/${teamId}`)
 }
 
 export async function inviteMemberToTeam(teamId, email) {
-  await request(`/teams/${teamId}/members`, {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-  })
-  const members = await request(`/teams/${teamId}/members`)
-  return members.map((member) => mapMember(member, teamId))
+  await api.post(`/teams/${teamId}/members`, { email })
+  const { data } = await api.get(`/teams/${teamId}/members`)
+  return data.map((member) => mapMember(member, teamId))
 }
 
 export async function kickMemberFromTeam(teamId, memberId) {
-  await request(`/teams/${teamId}/members/${memberId}`, {
-    method: 'DELETE',
-  })
-  const members = await request(`/teams/${teamId}/members`)
-  return members.map((member) => mapMember(member, teamId))
+  await api.delete(`/teams/${teamId}/members/${memberId}`)
+  const { data } = await api.get(`/teams/${teamId}/members`)
+  return data.map((member) => mapMember(member, teamId))
 }
 
 export async function getStatsByTeam(teamId) {
-  const members = await request(`/teams/${teamId}/members`)
-  const memberCount = members.length
-  const petals = members.reduce((sum, m) => sum + Number(m.petals_earned ?? 0), 0)
+  const { data } = await api.get(`/teams/${teamId}/members`)
+  const memberCount = data.length
+  const petals = data.reduce((sum, m) => sum + Number(m.petals_earned ?? 0), 0)
   return { memberCount, activeTasks: 0, petals }
 }
 
 export async function getMemberPetalsByTeam(teamId) {
-  const members = await request(`/teams/${teamId}/members`)
+  const { data } = await api.get(`/teams/${teamId}/members`)
   const petalMap = {}
-  for (const member of members) {
+  for (const member of data) {
     petalMap[member.id] = Number(member.petals_earned ?? 0)
   }
   return petalMap
