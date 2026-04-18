@@ -199,6 +199,75 @@ router.get('/me', authenticate, async (req, res, next) => {
 
 /**
  * @openapi
+ * /api/auth/me:
+ *   delete:
+ *     tags: [Auth]
+ *     operationId: deleteAccount
+ *     summary: Delete the authenticated user's account (requires password confirmation)
+ *     description: |
+ *       Permanently deletes the user. The database schema cascades to remove teams the user
+ *       created, their memberships in other teams, tasks they authored, and their comments.
+ *       Tasks they were assigned to (but did not create) have `assignee_user_id` set to NULL.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Current password, for confirmation.
+ *             example: { password: 'Hunter@2026' }
+ *     responses:
+ *       200:
+ *         description: Account deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Message' }
+ *       400:
+ *         description: Missing password
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       401:
+ *         description: Password does not match
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
+router.delete('/me', authenticate, async (req, res, next) => {
+  try {
+    const { password } = req.body
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to confirm deletion' })
+    }
+
+    const [users] = await pool.query('SELECT password FROM users WHERE id = ?', [req.user.id])
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    const validPassword = await bcrypt.compare(password, users[0].password)
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Password is incorrect' })
+    }
+
+    await pool.query('DELETE FROM users WHERE id = ?', [req.user.id])
+    res.json({ message: 'Account deleted successfully' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * @openapi
  * /api/auth/logout:
  *   post:
  *     tags: [Auth]

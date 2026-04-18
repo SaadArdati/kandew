@@ -30,6 +30,7 @@ export default function Home() {
   const [selectedMembers, setSelectedMembers] = useState([])
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [comments, setComments] = useState([])
+  const [teamMembers, setTeamMembers] = useState([])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -85,8 +86,6 @@ export default function Home() {
 
   const canManageActiveTeam = activeTeam?.currentUserRole === 'owner'
   const canCreateTasks = canManageActiveTeam
-
-  const [teamMembers, setTeamMembers] = useState([])
 
   // Filter tasksByColumn based on search, member selection, and priority
   const filteredTasksByColumn = useMemo(() => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import TeamPanel from '../../components/TeamPanel/TeamPanel'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
@@ -19,8 +19,37 @@ export default function AccountSettings() {
   const [selectedTeamFilter, setSelectedTeamFilter] = useState('all')
   const [saveMessage, setSaveMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleteMode, setDeleteMode] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
-  const allTasks = useMemo(() => teams.flatMap((team) => getTasksByTeam(team.id)), [teams])
+  const [allTasks, setAllTasks] = useState([])
+
+  useEffect(() => {
+    if (teams.length === 0) {
+      setAllTasks([])
+      return undefined
+    }
+
+    let cancelled = false
+
+    async function loadAllTasks() {
+      try {
+        const tasksPerTeam = await Promise.all(teams.map((team) => getTasksByTeam(team.id)))
+        if (!cancelled) setAllTasks(tasksPerTeam.flat())
+      } catch (error) {
+        console.error('Failed to load tasks for points panel:', error)
+        if (!cancelled) setAllTasks([])
+      }
+    }
+
+    loadAllTasks()
+
+    return () => {
+      cancelled = true
+    }
+  }, [teams])
 
   const completedTasks = useMemo(() => {
     return allTasks.filter(
@@ -81,6 +110,31 @@ export default function AccountSettings() {
   function handleSignOut() {
     if (onLogout) onLogout()
     navigate('/', { replace: true })
+  }
+
+  async function handleDeleteAccount(event) {
+    event.preventDefault()
+    if (!deletePassword) {
+      setDeleteError('Password is required.')
+      return
+    }
+    setDeleteError('')
+    setDeleting(true)
+    try {
+      await api.delete('/auth/me', { data: { password: deletePassword } })
+      if (onLogout) onLogout()
+      navigate('/', { replace: true })
+    } catch (err) {
+      setDeleteError(err.message || 'Failed to delete account.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function cancelDelete() {
+    setDeleteMode(false)
+    setDeletePassword('')
+    setDeleteError('')
   }
 
   return (
@@ -222,6 +276,53 @@ export default function AccountSettings() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="account-card danger-card">
+          <div className="card-heading">
+            <h2>Danger Zone</h2>
+            <p>
+              Deleting your account is permanent. Teams you own will be removed along with all their
+              tasks and comments. This cannot be undone.
+            </p>
+          </div>
+
+          {deleteMode ? (
+            <form onSubmit={handleDeleteAccount} className="danger-form">
+              <div className="account-form-group">
+                <label htmlFor="delete-password">Enter your password to confirm deletion</label>
+                <input
+                  id="delete-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(event) => setDeletePassword(event.target.value)}
+                />
+              </div>
+              {deleteError && <p className="danger-error">{deleteError}</p>}
+              <div className="account-form-actions">
+                <button type="submit" disabled={deleting} className="danger-confirm-btn">
+                  {deleting ? 'Deleting…' : 'Delete my account'}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelDelete}
+                  disabled={deleting}
+                  className="danger-cancel-btn"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDeleteMode(true)}
+              className="danger-trigger-btn"
+            >
+              Delete account
+            </button>
+          )}
         </div>
       </section>
     </div>
