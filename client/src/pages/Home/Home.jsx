@@ -7,7 +7,7 @@ import TaskDetailsDialog from '../../components/TaskDetailsDialog/TaskDetailsDia
 import CreateTaskDialog from '../../components/CreateTaskDialog/CreateTaskDialog'
 import useTeamViewModel from '../../viewmodels/useTeamViewModel'
 import useBoardViewModel from '../../viewmodels/useBoardViewModel'
-import { currentUser } from '../../data/mockData'
+
 import {
   getCommentsByTask,
   addComment,
@@ -20,6 +20,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { teams, activeTeamId, activeTeam, activeTeamName, selectTeam } = useTeamViewModel()
   const board = useBoardViewModel(activeTeamId)
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
 
   const [selectedTask, setSelectedTask] = useState(null)
   const [taskBeingEdited, setTaskBeingEdited] = useState(null)
